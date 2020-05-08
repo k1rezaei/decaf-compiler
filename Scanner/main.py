@@ -1,13 +1,14 @@
 import sys, getopt
 import string
 
+
 class Token:
     def __init__(self, token, attribute):
         self.token = token
-        self.att =  attribute
+        self.att = attribute
 
     def __repr__(self):
-        if self.att is None:
+        if self.att is not None:
             return self.token + " " + self.att + "\n"
         else:
             return self.token + "\n"
@@ -92,9 +93,49 @@ def scan_number(input_file, digits, hex_):
             if ch is not '.':
                 return Token('T_INTLITERAL', "".join(st))
             else:
-                pass
+                st.append('.')
+                ch = get_next_char(input_file)
+                while ch in digits:
+                    st.append(ch)
+                    ch = get_next_char(input_file)
+                if ch is 'e' or ch is 'E':
+                    st.append(ch)
+                    ch = get_next_char(input_file)
+                    if ch is '+' or ch is '-':
+                        st.append(ch)
+                        ch = get_next_char(input_file)
+                    val = False
+                    while ch in digits:
+                        val = True
+                        st.append(ch)
+                        ch = get_next_char(input_file)
+                    if val:
+                        return Token('T_DOUBLELITERAL', "".join(st))
+                    else:
+                        return Token('UNDEFINED_TOKEN', None)
+                else:
+                    return Token('T_DOUBLELITERAL', "".join(st))
     else:
         return Token("".join(st), None)
+
+
+
+def scan_string(input_file):
+    global ch
+
+    lexeme = '"'
+    ch = get_next_char(input_file)
+    while ch != '"' and ch != '\n' and ch:
+        lexeme += ch
+        ch = get_next_char(input_file)
+
+    if not ch:
+        return Token('UNDEFINED_TOKEN', None)
+
+    lexeme += '"'  # TODO what should we do with "asdad\n ?
+    ch = get_next_char(input_file)
+
+    return Token('T_STRINGLITERAL', lexeme)
 
 
 def scan(input_file):
@@ -103,7 +144,8 @@ def scan(input_file):
     alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase)
     under_score = ['_']
     digits = list(string.digits)
-    keywords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'null', 'this', 'extends', 'implements',
+    keywords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'null', 'this', 'extends',
+                'implements',
                 'for', 'while', 'if', 'else', 'return', 'break', 'new', 'NewArray', 'Print', 'ReadInteger', 'ReadLine']
     math_opr1 = [';', ',', '(', ')', ']', '%', '*', '.']
     math_opr2 = ['!', '=', '>', '<']
@@ -115,20 +157,22 @@ def scan(input_file):
         if ch in (alphabet + under_score):
             lexeme = scan_id(input_file, alphabet + under_score + digits)
             if lexeme in keywords:
-                tokens.append(lexeme)
+                tokens.append(Token(lexeme, None))
             elif lexeme == 'true' or lexeme == 'false':
-                tokens.append('T_BOOLEANLITERAL ' + lexeme)
+                tokens.append(Token('T_BOOLEANLITERAL', lexeme))
             else:
-                tokens.append('T_ID ' + lexeme)
+                tokens.append(Token('T_ID', lexeme))
         elif ch in math_opr1:
-            ch = get_next_char(input_file)
             tokens.append(Token(ch, None))
+            ch = get_next_char(input_file)
         elif ch in math_opr2:
             st = [ch]
             ch = get_next_char(input_file)
-            if ch is '=':
+            if ch is '=':  # TODO
                 ch = get_next_char(input_file)
                 st.append('=')
+                tokens.append(Token("".join(st), None))
+            else:
                 tokens.append(Token("".join(st), None))
         elif ch is '/':
             tokens.append(scan_comment(input_file))
@@ -159,6 +203,10 @@ def scan(input_file):
                 tokens.append(Token('[', None))
         elif ch in digits or ch is '+' or ch is '-':
             tokens.append(scan_number(input_file, digits, hex_))
+            if tokens[-1].token == 'UNDEFINED_TOKEN':
+                break
+        elif ch == '"':
+            tokens.append(scan_string(input_file))
             if tokens[-1].token == 'UNDEFINED_TOKEN':
                 break
         else:  # white space
@@ -192,7 +240,9 @@ def main(argv):
         # write result to output file.
         # for the sake of testing :
         for token in tokens:
-            output_file.write(token + '\n')
+            if token.token == 'T_singleLineComment' or token.token == 'T_multipleLineComment':
+                continue
+            output_file.write(str(token))
 
 
 if __name__ == "__main__":

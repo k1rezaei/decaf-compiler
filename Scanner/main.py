@@ -32,6 +32,71 @@ def scan_id(input_file, letters):
     return lexeme
 
 
+def scan_comment(input_file):
+    global ch
+    st = ['/']
+    ch = get_next_char(input_file)
+    if ch is '/':
+        st.append('/')
+        ch = get_next_char(input_file)
+        while ch is not '\n' and ch:
+            st.append(ch)
+            ch = get_next_char(input_file)
+        return Token('T_singleLineComment', "".join(st))
+    elif ch is '*':
+        ch = get_next_char(input_file)
+        pre = [None, ch]
+        st = ['/', '*']
+        while True:
+            st.append(ch)
+            if pre[0] == '*' and pre[1] == '/':
+                st.append('*')
+                st.append('/')
+                return Token('T_multipleLineComment', "".join(st))
+            if ch is None:
+                return Token('UNDEFINED_TOKEN', None)
+            pre[0] = pre[1]
+            pre[1] = ch
+            ch = get_next_char(input_file)
+    else:
+        return Token('/', None)
+
+
+def scan_number(input_file, digits, hex_):
+    global ch
+    st = []
+    if ch is '+' or ch is '-':
+        st.append(ch)
+        ch = get_next_char(input_file)
+    if ch in digits:
+        nex = get_next_char(input_file)
+        if ch is '0' and (nex is 'X' or nex is 'x'):
+            st.append('0')
+            st.append(nex)
+            ch = get_next_char(input_file)
+            val = False
+            while ch in hex_:
+                val = True
+                st.append(ch)
+                ch = get_next_char(input_file)
+            if val:
+                return Token('T_INTLITERAL', "".join(st))
+            else:
+                return Token('UNDEFINED_TOKEN', None)
+        else:
+            st.append(ch)
+            ch = nex
+            while ch in digits:
+                st.append(ch)
+                ch = get_next_char(input_file)
+            if ch is not '.':
+                return Token('T_INTLITERAL', "".join(st))
+            else:
+                pass
+    else:
+        return Token("".join(st), None)
+
+
 def scan(input_file):
     global ch
 
@@ -46,8 +111,7 @@ def scan(input_file):
     tokens = []
 
     ch = get_next_char(input_file)
-    valid = True
-    while ch and valid:  # ch is not EOF
+    while ch:  # ch is not EOF
         if ch in (alphabet + under_score):
             lexeme = scan_id(input_file, alphabet + under_score + digits)
             if lexeme in keywords:
@@ -67,48 +131,25 @@ def scan(input_file):
                 st.append('=')
                 tokens.append(Token("".join(st), None))
         elif ch is '/':
-            st = ['/']
-            ch = input_file.read(1)
-            if ch is '/':
-                st.append('/')
-                ch = get_next_char(input_file)
-                while ch is not '\n' and ch:
-                    st.append(ch)
-                    ch = get_next_char(input_file)
-                tokens.append(Token('T_singleLineComment', "".join(st)))
-            elif ch is '*':
-                ch = get_next_char(input_file)
-                pre = [None, ch]
-                st = ['/', '*']
-                while True:
-                    st.append(ch)
-                    if pre[0] == '*' and pre[1] == '/':
-                        st.append('*')
-                        st.append('/')
-                        tokens.append(('T_multipleLineComment', "".join(st)))
-                        break
-                    if ch is None:
-                        valid = False
-                        tokens.append(Token('UNDEFINED_TOKEN', None))
-                        break
-            else:
-                tokens.append(Token('/', None))
+            tokens.append(scan_comment(input_file))
+            if tokens[-1].token == 'UNDEFINED_TOKEN':
+                break
         elif ch is '&':
             ch = get_next_char(input_file)
             if ch is '&':
                 ch = get_next_char(input_file)
                 tokens.append(Token('&&', None))
             else:
-                valid = False
                 tokens.append(Token('UNDEFINED_TOKEN', None))
+                break
         elif ch is '|':
             ch = get_next_char(input_file)
             if ch is '|':
                 ch = get_next_char(input_file)
                 tokens.append(Token('||', None))
             else:
-                valid = False
                 tokens.append(Token('UNDEFINED_TOKEN', None))
+                break
         elif ch is '[':
             ch = get_next_char(input_file)
             if ch is ']':
@@ -117,37 +158,9 @@ def scan(input_file):
             else:
                 tokens.append(Token('[', None))
         elif ch in digits or ch is '+' or ch is '-':
-            st = []
-            if ch is '+' or ch is '-':
-                st.append(ch)
-                ch = get_next_char(input_file)
-            if ch in digits:
-                nex = get_next_char(input_file)
-                if ch is '0' and (nex is 'X' or nex is 'x'):
-                    st.append('0')
-                    st.append(nex)
-                    ch = get_next_char(input_file)
-                    val = False
-                    while ch in hex_:
-                        val = True
-                        st.append(ch)
-                        ch = get_next_char(input_file)
-                    if val:
-                        tokens.append(Token('T_INTLITERAL', "".join(st)))
-                    else:
-                        tokens.append(Token('UNDEFINED_TOKEN', None))
-                else:
-                    st.append(ch)
-                    ch = nex
-                    while ch in digits:
-                        st.append(ch)
-                        ch = get_next_char(input_file)
-                    if ch is not '.':
-                        tokens.append(Token('T_INTLITERAL', "".join(st)))
-                    else:
-                        pass
-            else:
-                tokens.append("".join(st))
+            tokens.append(scan_number(input_file, digits, hex_))
+            if tokens[-1].token == 'UNDEFINED_TOKEN':
+                break
         else:  # white space
             ch = get_next_char(input_file)
 

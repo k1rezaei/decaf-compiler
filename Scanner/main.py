@@ -4,10 +4,10 @@ import string
 class Token:
     def __init__(self, token, attribute):
         self.token = token
-        self.att =  attribute
+        self.att = attribute
 
     def __repr__(self):
-        if self.att is None:
+        if self.att is not None:
             return self.token + " " + self.att + "\n"
         else:
             return self.token + "\n"
@@ -92,7 +92,28 @@ def scan_number(input_file, digits, hex_):
             if ch is not '.':
                 return Token('T_INTLITERAL', "".join(st))
             else:
-                pass
+                st.append('.')
+                ch = get_next_char(input_file)
+                while ch in digits:
+                    st.append(ch)
+                    ch = get_next_char(input_file)
+                if ch is 'e' or ch is 'E':
+                    st.append(ch)
+                    ch = get_next_char(input_file)
+                    if ch is '+' or ch is '-':
+                        st.append(ch)
+                        ch = get_next_char(input_file)
+                    val = False
+                    while ch in digits:
+                        val = True
+                        st.append(ch)
+                        ch = get_next_char(input_file)
+                    if val:
+                        return Token('T_DOUBLELITERAL', "".join(st))
+                    else:
+                        return Token('UNDEFINED_TOKEN', None)
+                else:
+                    return Token('T_DOUBLELITERAL', "".join(st))
     else:
         return Token("".join(st), None)
 
@@ -168,8 +189,8 @@ def scan(input_file):
 
 
 def main(argv):
-    inputfile = ''
-    outputfile = ''
+    inputfile = 't07-operator1.in'
+    outputfile = 'out.txt'
     try:
         opts, args = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
     except getopt.GetoptError:
@@ -192,7 +213,7 @@ def main(argv):
         # write result to output file.
         # for the sake of testing :
         for token in tokens:
-            output_file.write(token + '\n')
+            output_file.write(str(token) + '\n')
 
 
 if __name__ == "__main__":

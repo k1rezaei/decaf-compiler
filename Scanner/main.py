@@ -119,7 +119,6 @@ def scan_number(input_file, digits, hex_):
         return Token("".join(st), None)
 
 
-
 def scan_string(input_file):
     global ch
 
@@ -129,10 +128,10 @@ def scan_string(input_file):
         lexeme += ch
         ch = get_next_char(input_file)
 
-    if not ch:
+    if not ch or ch == '\n':
         return Token('UNDEFINED_TOKEN', None)
 
-    lexeme += '"'  # TODO what should we do with "asdad\n ?
+    lexeme += '"'
     ch = get_next_char(input_file)
 
     return Token('T_STRINGLITERAL', lexeme)

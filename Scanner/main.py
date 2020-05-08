@@ -3,6 +3,10 @@ import string
 import sys
 
 
+ch = ''
+next_ = []
+
+
 class Token:
     def __init__(self, token, attribute):
         self.token = token
@@ -16,10 +20,11 @@ class Token:
 
 
 def get_next_char(input_file):
+    if len(next_) != 0:
+        c = next_[0]
+        next_.remove(c)
+        return c
     return input_file.read(1)
-
-
-ch = ''
 
 
 def scan_id(input_file, letters):
@@ -95,8 +100,10 @@ def scan_number(input_file, digits, hex_):
             if ch is 'e' or ch is 'E':
                 st.append(ch)
                 ch = get_next_char(input_file)
+                nu = False
                 if ch is '+' or ch is '-':
                     st.append(ch)
+                    nu = True
                     ch = get_next_char(input_file)
                 val = False
                 while ch in digits:
@@ -105,8 +112,14 @@ def scan_number(input_file, digits, hex_):
                     ch = get_next_char(input_file)
                 if val:
                     return Token('T_DOUBLELITERAL', "".join(st))
-                else:  # TODO
-                    return Token('UNDEFINED_TOKEN', None)
+                else:
+                    nu_ = 1
+                    if nu:
+                        next_.append(st[-1])
+                        nu_ = 2
+                    next_.append(ch)
+                    ch = st[-nu_]
+                    return Token('T_DOUBLELITERAL', "".join(st[:-nu_]))
             else:
                 return Token('T_DOUBLELITERAL', "".join(st))
 
@@ -224,12 +237,9 @@ def main(argv):
             outputfile = arg
 
     with open("tests/" + inputfile, "r") as input_file:
-        # do stuff with input file
         tokens = scan(input_file)
 
     with open("out/" + outputfile, "w") as output_file:
-        # write result to output file.
-        # for the sake of testing :
         for token in tokens:
             if token.token == 'T_singleLineComment' or token.token == 'T_multipleLineComment':
                 continue

@@ -182,6 +182,19 @@ def scan(input_file):
             tokens.append(scan_number(input_file, digits, hex_))
             if tokens[-1].token == 'UNDEFINED_TOKEN':
                 break
+        elif ch is '"':
+            st = ['"']
+            ch = get_next_char(input_file)
+            val = True
+            while ch != '"':
+                if ch is '\n' or ch is None:
+                    tokens.append(Token('UNDEFINED_TOKEN', None))
+                    val = False
+                st.append(ch)
+            if val:
+                tokens.append(Token('T_STRINGLITERAL', "".join(st)))
+            else:
+                break
         else:  # white space
             ch = get_next_char(input_file)
 

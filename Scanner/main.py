@@ -1,5 +1,6 @@
-import sys, getopt
+import getopt
 import string
+import sys
 
 
 class Token:
@@ -65,61 +66,52 @@ def scan_comment(input_file):
 
 def scan_number(input_file, digits, hex_):
     global ch
-    st = []
-    if ch is '+' or ch is '-':
+    st = [ch]
+    ch = get_next_char(input_file)
+    if st[0] is '0' and (ch is 'X' or ch is 'x'):
         st.append(ch)
         ch = get_next_char(input_file)
-    if ch in digits:
-        nex = get_next_char(input_file)
-        if ch is '0' and (nex is 'X' or nex is 'x'):
-            st.append('0')
-            st.append(nex)
-            ch = get_next_char(input_file)
-            val = False
-            while ch in hex_:
-                val = True
-                st.append(ch)
-                ch = get_next_char(input_file)
-            if val:
-                return Token('T_INTLITERAL', "".join(st))
-            else:
-                return Token('UNDEFINED_TOKEN', None)
-        else:
+        val = False
+        while ch in hex_:
+            val = True
             st.append(ch)
-            ch = nex
+            ch = get_next_char(input_file)
+        if val:
+            return Token('T_INTLITERAL', "".join(st))
+        else:
+            return Token('UNDEFINED_TOKEN', None)
+    else:
+        while ch in digits:
+            st.append(ch)
+            ch = get_next_char(input_file)
+        if ch is not '.':
+            return Token('T_INTLITERAL', "".join(st))
+        else:
+            st.append('.')
+            ch = get_next_char(input_file)
             while ch in digits:
                 st.append(ch)
                 ch = get_next_char(input_file)
-            if ch is not '.':
-                return Token('T_INTLITERAL', "".join(st))
-            else:
-                st.append('.')
+            if ch is 'e' or ch is 'E':
+                st.append(ch)
                 ch = get_next_char(input_file)
+                if ch is '+' or ch is '-':
+                    st.append(ch)
+                    ch = get_next_char(input_file)
+                val = False
                 while ch in digits:
+                    val = True
                     st.append(ch)
                     ch = get_next_char(input_file)
-                if ch is 'e' or ch is 'E':
-                    st.append(ch)
-                    ch = get_next_char(input_file)
-                    if ch is '+' or ch is '-':
-                        st.append(ch)
-                        ch = get_next_char(input_file)
-                    val = False
-                    while ch in digits:
-                        val = True
-                        st.append(ch)
-                        ch = get_next_char(input_file)
-                    if val:
-                        return Token('T_DOUBLELITERAL', "".join(st))
-                    else:
-                        return Token('UNDEFINED_TOKEN', None)
-                else:
+                if val:
                     return Token('T_DOUBLELITERAL', "".join(st))
-    else:
-        return Token("".join(st), None)
+                else:  # TODO
+                    return Token('UNDEFINED_TOKEN', None)
+            else:
+                return Token('T_DOUBLELITERAL', "".join(st))
 
 
-def scan_string(input_file):
+def scan_string(input_file):  # TODO
     global ch
 
     lexeme = '"'
@@ -146,7 +138,7 @@ def scan(input_file):
     keywords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'null', 'this', 'extends',
                 'implements',
                 'for', 'while', 'if', 'else', 'return', 'break', 'new', 'NewArray', 'Print', 'ReadInteger', 'ReadLine']
-    math_opr1 = [';', ',', '(', ')', ']', '%', '*', '.']
+    math_opr1 = [';', ',', '(', ')', ']', '%', '*', '.', '-', '+', '{', '}']
     math_opr2 = ['!', '=', '>', '<']
     hex_ = list(string.hexdigits)
     tokens = []
@@ -167,7 +159,7 @@ def scan(input_file):
         elif ch in math_opr2:
             st = [ch]
             ch = get_next_char(input_file)
-            if ch is '=':  # TODO
+            if ch is '=':
                 ch = get_next_char(input_file)
                 st.append('=')
                 tokens.append(Token("".join(st), None))
@@ -200,7 +192,7 @@ def scan(input_file):
                 tokens.append(Token('[]', None))
             else:
                 tokens.append(Token('[', None))
-        elif ch in digits or ch is '+' or ch is '-':
+        elif ch in digits:
             tokens.append(scan_number(input_file, digits, hex_))
             if tokens[-1].token == 'UNDEFINED_TOKEN':
                 break

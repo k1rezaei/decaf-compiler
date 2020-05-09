@@ -85,7 +85,9 @@ def scan_number(input_file, digits, hex_):
         if val:
             return Token('T_INTLITERAL', "".join(st))
         else:
-            return Token('UNDEFINED_TOKEN', None)
+            next_.append(ch)
+            ch = st[1]
+            return Token('T_INTLITERAL', '0')
     else:
         while ch in digits:
             st.append(ch)
@@ -125,7 +127,7 @@ def scan_number(input_file, digits, hex_):
                 return Token('T_DOUBLELITERAL', "".join(st))
 
 
-def scan_string(input_file):  # TODO
+def scan_string(input_file):
     global ch
 
     lexeme = '"'

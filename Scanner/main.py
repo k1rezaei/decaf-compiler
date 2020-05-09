@@ -36,6 +36,7 @@ def scan_id(input_file, letters):
     while ch in letters and length < MAX_NUMBER_OF_LETTERS_IN_ID:
         lexeme += ch
         ch = get_next_char(input_file)
+        length += 1
     return lexeme
 
 

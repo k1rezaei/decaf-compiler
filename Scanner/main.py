@@ -8,7 +8,7 @@ next_ = []
 
 
 class Token:
-    def __init__(self, token, attribute):
+    def __init__(self, token, attribute=None):
         self.token = token
         self.att = attribute
 
@@ -62,12 +62,12 @@ def scan_comment(input_file):
                 st.append('/')
                 return Token('T_multipleLineComment', "".join(st))
             if ch is None:
-                return Token('UNDEFINED_TOKEN', None)
+                return Token('UNDEFINED_TOKEN')
             pre[0] = pre[1]
             pre[1] = ch
             ch = get_next_char(input_file)
     else:
-        return Token('/', None)
+        return Token('/')
 
 
 def scan_number(input_file, digits, hex_):
@@ -137,7 +137,7 @@ def scan_string(input_file):
         ch = get_next_char(input_file)
 
     if not ch or ch == '\n':
-        return Token('UNDEFINED_TOKEN', None)
+        return Token('UNDEFINED_TOKEN')
 
     lexeme += '"'
     ch = get_next_char(input_file)
@@ -164,13 +164,13 @@ def scan(input_file):
         if ch in (alphabet + under_score):
             lexeme = scan_id(input_file, alphabet + under_score + digits)
             if lexeme in keywords:
-                tokens.append(Token(lexeme, None))
+                tokens.append(Token(lexeme))
             elif lexeme == 'true' or lexeme == 'false':
                 tokens.append(Token('T_BOOLEANLITERAL', lexeme))
             else:
                 tokens.append(Token('T_ID', lexeme))
         elif ch in math_opr1:
-            tokens.append(Token(ch, None))
+            tokens.append(Token(ch))
             ch = get_next_char(input_file)
         elif ch in math_opr2:
             st = [ch]
@@ -178,9 +178,9 @@ def scan(input_file):
             if ch is '=':
                 ch = get_next_char(input_file)
                 st.append('=')
-                tokens.append(Token("".join(st), None))
+                tokens.append(Token("".join(st)))
             else:
-                tokens.append(Token("".join(st), None))
+                tokens.append(Token("".join(st)))
         elif ch is '/':
             tokens.append(scan_comment(input_file))
             if tokens[-1].token == 'UNDEFINED_TOKEN':
@@ -189,25 +189,25 @@ def scan(input_file):
             ch = get_next_char(input_file)
             if ch is '&':
                 ch = get_next_char(input_file)
-                tokens.append(Token('&&', None))
+                tokens.append(Token('&&'))
             else:
-                tokens.append(Token('UNDEFINED_TOKEN', None))
+                tokens.append(Token('UNDEFINED_TOKEN'))
                 break
         elif ch is '|':
             ch = get_next_char(input_file)
             if ch is '|':
                 ch = get_next_char(input_file)
-                tokens.append(Token('||', None))
+                tokens.append(Token('||'))
             else:
-                tokens.append(Token('UNDEFINED_TOKEN', None))
+                tokens.append(Token('UNDEFINED_TOKEN'))
                 break
         elif ch is '[':
             ch = get_next_char(input_file)
             if ch is ']':
                 ch = get_next_char(input_file)
-                tokens.append(Token('[]', None))
+                tokens.append(Token('[]'))
             else:
-                tokens.append(Token('[', None))
+                tokens.append(Token('['))
         elif ch in digits:
             tokens.append(scan_number(input_file, digits, hex_))
             if tokens[-1].token == 'UNDEFINED_TOKEN':

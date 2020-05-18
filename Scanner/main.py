@@ -61,7 +61,7 @@ def scan_comment(input_file):
                 st.append('*')
                 st.append('/')
                 return Token('T_multipleLineComment', "".join(st))
-            if ch is None:
+            if not ch:
                 return Token('UNDEFINED_TOKEN')
             pre[0] = pre[1]
             pre[1] = ch
@@ -216,8 +216,11 @@ def scan(input_file):
             tokens.append(scan_string(input_file))
             if tokens[-1].token == 'UNDEFINED_TOKEN':
                 break
-        else:  # white space
+        elif ch in string.whitespace:  # white space
             ch = get_next_char(input_file)
+        else:
+            tokens.append(Token('UNDEFINED_TOKEN'))
+            break
 
     return tokens
 

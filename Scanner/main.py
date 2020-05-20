@@ -37,7 +37,16 @@ def scan_id(input_file, letters):
         lexeme += ch
         ch = get_next_char(input_file)
         length += 1
+
+    if length < MAX_NUMBER_OF_LETTERS_IN_ID:
+        return lexeme
+
+    if ch in letters:
+        return None
+
     return lexeme
+
+
 
 
 def scan_comment(input_file):
@@ -163,7 +172,10 @@ def scan(input_file):
     while ch:  # ch is not EOF
         if ch in (alphabet + under_score):
             lexeme = scan_id(input_file, alphabet + under_score + digits)
-            if lexeme in keywords:
+            if lexeme is None:
+                tokens.append(Token('UNDEFINED_TOKEN'))
+                break
+            elif lexeme in keywords:
                 tokens.append(Token(lexeme))
             elif lexeme == 'true' or lexeme == 'false':
                 tokens.append(Token('T_BOOLEANLITERAL', lexeme))

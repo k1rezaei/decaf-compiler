@@ -23,7 +23,7 @@ functiondecl : type ident "(" formals ")" stmtblock
             | "void" ident "(" formals ")" stmtblock
 
 formals : (variable ( "," variable)*)?
-          
+
 
 classdecl : "class" ident ("extends" ident)? ("implements" ident ("," ident)* )? "{" field* "}"
 
@@ -58,38 +58,59 @@ breakstmt : "break" ";"
 
 printstmt : "print" "(" expr ("," expr)* ")" ";"
 
-expr : lvalue "=" expr
-     | constant
+expr : expr0
+
+
+
+expr0 :  expr1
+     | lvalue "=" expr0
+
+expr1 : expr2
+     | expr2 "||" expr1
+
+expr2 : expr3
+     | expr3 "&&" expr2
+
+expr3 : expr4
+     | expr4 "==" expr3
+     | expr4 "!=" expr3
+
+expr4 : expr5
+     | expr5 "<" expr4
+     | expr5 "<=" expr4
+     | expr5 ">" expr4
+     | expr5 ">=" expr4
+
+expr5 : expr6
+     | expr6 "+" expr5
+     | expr6 "-" expr5
+
+expr6 : expr7
+     | expr7 "*" expr6
+     | expr7 "/" expr6
+     | expr7 "%" expr6
+
+expr7 : expr8
+     | "-" expr7
+     | "!" expr7
+
+expr8 : constant
      | lvalue
      | "this"
-     | call
-     | "(" expr ")"
-     | expr "+" expr
-     | expr "-" expr
-     | expr "*" expr
-     | expr "/" expr
-     | expr "%" expr
-     | "-" expr
-     | expr "<" expr
-     | expr "<=" expr
-     | expr ">" expr
-     | expr ">=" expr
-     | expr "==" expr
-     | expr "!=" expr
-     | expr "&&" expr
-     | expr "||" expr
-     | "!" expr
+     | call 
      | "ReadInteger" "(" ")"
      | "ReadLine" "(" ")"
      | "new" ident
      | "NewArray" "(" expr "," type ")"
+     |"(" expr ")"
+
 
 lvalue : ident
-       | expr "." ident
-       | expr "[" expr "]"
+       | expr8 "." ident
+       | expr8 "[" expr "]"
 
 call : ident "(" actuals ")"
-     | expr "." ident "(" actuals ")"
+     | expr8 "." ident "(" actuals ")"
 
 actuals : expr ("," expr)+
         |
@@ -119,6 +140,6 @@ ident : /[a-zA-Z][a-zA-Z0-9_]{,30}/
 %import common.WS -> WHITESPACE
 %ignore WHITESPACE
 """
-x = input()
+x = input()  # "int main(){(23423).ali();}"
 parser = Lark(grammar, parser='lalr')
 print(parser.parse(x).pretty())

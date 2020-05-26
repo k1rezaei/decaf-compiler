@@ -109,7 +109,7 @@ lvalue : ident
 call : ident "(" actuals ")"
      | expr8 "." ident "(" actuals ")"
 
-actuals : expr ("," expr)+
+actuals : expr ("," expr)*
         |
 
 constant : intconstant

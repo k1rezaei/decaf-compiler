@@ -56,7 +56,7 @@ returnstmt : "return" (expr)?
 
 breakstmt : "break" ";"
 
-printstmt : "print" "(" expr ("," expr)* ")" ";"
+printstmt : "Print" "(" expr ("," expr)* ")" ";"
 
 expr : expr0
 

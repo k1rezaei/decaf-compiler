@@ -138,5 +138,12 @@ ident : /[a-zA-Z][a-zA-Z0-9_]{,30}/
 %ignore WHITESPACE
 """
 x = input()  # "int main(){(23423).ali();}"
+st = ""
+st += x
+while True:
+    x = input()
+    if x == "end":
+        break
+    st += ("\n" + x)
 parser = Lark(grammar, parser='lalr')
-print(parser.parse(x).pretty())
+print(parser.parse(st + "\n").pretty())

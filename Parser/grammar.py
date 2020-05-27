@@ -1,3 +1,5 @@
+import sys, getopt
+
 from lark import Lark
 
 grammar = """
@@ -144,8 +146,37 @@ MULTI_LINE_COMMENT : /\/\*([^\\*]|(\*)+[^\\*\\/])*(\*)+\//
 
 """
 
-f = open("tests/t1.in", "r")
-x = f.read()
 
-parser = Lark(grammar, parser='lalr')
-print(parser.parse(x).pretty())
+def main(argv):
+    inputfile = ''
+    outputfile = ''
+
+    try:
+        opts, args = getopt.getopt(argv, "i:o:", [])
+    except getopt.GetoptError:
+        print('format should be --> test.py -i <inputfile> -o <outputfile>')
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-i':
+            inputfile = arg
+        elif opt == '-o':
+            outputfile = arg
+
+    if inputfile == '':
+        print("no input file")
+
+    input_file = open("tests/" + inputfile, "r")
+    x = input_file.read()
+
+    parser = Lark(grammar, parser='lalr')
+
+    if outputfile == '':
+        print(parser.parse(x).pretty())
+    else:
+        with open("out/" + outputfile, "w") as output_file:
+            output_file.write(parser.parse(x).pretty())
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

@@ -1,0 +1,997 @@
+start
+  decl
+    classdecl
+      ident	QueueItem
+      field
+        variabledecl
+          variable
+            type
+            ident	data
+      field
+        variabledecl
+          variable
+            type
+              ident	QueueItem
+            ident	next
+      field
+        variabledecl
+          variable
+            type
+              ident	QueueItem
+            ident	prev
+      field
+        functiondecl
+          ident	Init
+          formals
+            variable
+              type
+              ident	data
+            variable
+              type
+                ident	QueueItem
+              ident	next
+            variable
+              type
+                ident	QueueItem
+              ident	prev
+          stmtblock
+            stmt
+              expr
+                lvalue
+                  expr8
+                  ident	data
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	data
+            stmt
+              expr
+                lvalue
+                  expr8
+                  ident	next
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	next
+            stmt
+              expr
+                lvalue
+                  expr8
+                    lvalue
+                      ident	next
+                  ident	prev
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+            stmt
+              expr
+                lvalue
+                  expr8
+                  ident	prev
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	prev
+            stmt
+              expr
+                lvalue
+                  expr8
+                    lvalue
+                      ident	prev
+                  ident	next
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+      field
+        functiondecl
+          type
+          ident	GetData
+          formals
+          stmtblock
+            stmt
+              returnstmt
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    expr8
+                                    ident	data
+      field
+        functiondecl
+          type
+            ident	QueueItem
+          ident	GetNext
+          formals
+          stmtblock
+            stmt
+              returnstmt
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	next
+      field
+        functiondecl
+          type
+            ident	QueueItem
+          ident	GetPrev
+          formals
+          stmtblock
+            stmt
+              returnstmt
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	prev
+      field
+        functiondecl
+          ident	SetNext
+          formals
+            variable
+              type
+                ident	QueueItem
+              ident	n
+          stmtblock
+            stmt
+              expr
+                lvalue
+                  ident	next
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	n
+      field
+        functiondecl
+          ident	SetPrev
+          formals
+            variable
+              type
+                ident	QueueItem
+              ident	p
+          stmtblock
+            stmt
+              expr
+                lvalue
+                  ident	prev
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	p
+  decl
+    classdecl
+      ident	Queue
+      field
+        variabledecl
+          variable
+            type
+              ident	QueueItem
+            ident	head
+      field
+        functiondecl
+          ident	Init
+          formals
+          stmtblock
+            stmt
+              expr
+                lvalue
+                  expr8
+                  ident	head
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  ident	QueueItem
+            stmt
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                call
+                                  expr8
+                                    lvalue
+                                      expr8
+                                      ident	head
+                                  ident	Init
+                                  actuals
+                                    expr
+                                      expr1
+                                        expr2
+                                          expr3
+                                            expr4
+                                              expr5
+                                                expr6
+                                                  expr7
+                                                    expr8
+                                                      constant
+                                                        intconstant
+                                                          integer	0
+                                    expr
+                                      expr1
+                                        expr2
+                                          expr3
+                                            expr4
+                                              expr5
+                                                expr6
+                                                  expr7
+                                                    expr8
+                                                      lvalue
+                                                        expr8
+                                                        ident	head
+                                    expr
+                                      expr1
+                                        expr2
+                                          expr3
+                                            expr4
+                                              expr5
+                                                expr6
+                                                  expr7
+                                                    expr8
+                                                      lvalue
+                                                        expr8
+                                                        ident	head
+      field
+        functiondecl
+          ident	EnQueue
+          formals
+            variable
+              type
+              ident	i
+          stmtblock
+            variabledecl
+              variable
+                type
+                  ident	QueueItem
+                ident	temp
+            stmt
+              expr
+                lvalue
+                  ident	temp
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  ident	QueueItem
+            stmt
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                call
+                                  expr8
+                                    lvalue
+                                      ident	temp
+                                  ident	Init
+                                  actuals
+                                    expr
+                                      expr1
+                                        expr2
+                                          expr3
+                                            expr4
+                                              expr5
+                                                expr6
+                                                  expr7
+                                                    expr8
+                                                      lvalue
+                                                        ident	i
+                                    expr
+                                      expr1
+                                        expr2
+                                          expr3
+                                            expr4
+                                              expr5
+                                                expr6
+                                                  expr7
+                                                    expr8
+                                                      call
+                                                        expr8
+                                                          lvalue
+                                                            expr8
+                                                            ident	head
+                                                        ident	GetNext
+                                                        actuals
+                                    expr
+                                      expr1
+                                        expr2
+                                          expr3
+                                            expr4
+                                              expr5
+                                                expr6
+                                                  expr7
+                                                    expr8
+                                                      lvalue
+                                                        expr8
+                                                        ident	head
+      field
+        functiondecl
+          type
+          ident	DeQueue
+          formals
+          stmtblock
+            variabledecl
+              variable
+                type
+                ident	val
+            stmt
+              ifstmt
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr3
+                          expr4
+                            expr5
+                              expr6
+                                expr7
+                                  expr8
+                                    call
+                                      expr8
+                                        lvalue
+                                          expr8
+                                          ident	head
+                                      ident	GetPrev
+                                      actuals
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    expr8
+                                    ident	head
+                stmt
+                  stmtblock
+                    stmt
+                      printstmt
+                        expr
+                          expr1
+                            expr2
+                              expr3
+                                expr4
+                                  expr5
+                                    expr6
+                                      expr7
+                                        expr8
+                                          constant
+                                            stringconstant	"Queue Is Empty"
+                    stmt
+                      returnstmt
+                        expr
+                          expr1
+                            expr2
+                              expr3
+                                expr4
+                                  expr5
+                                    expr6
+                                      expr7
+                                        expr8
+                                          constant
+                                            intconstant
+                                              integer	0
+                stmt
+                  stmtblock
+                    variabledecl
+                      variable
+                        type
+                          ident	QueueItem
+                        ident	temp
+                    stmt
+                      expr
+                        lvalue
+                          ident	temp
+                        expr
+                          expr1
+                            expr2
+                              expr3
+                                expr4
+                                  expr5
+                                    expr6
+                                      expr7
+                                        expr8
+                                          call
+                                            expr8
+                                              lvalue
+                                                expr8
+                                                ident	head
+                                            ident	GetPrev
+                                            actuals
+                    stmt
+                      expr
+                        lvalue
+                          ident	val
+                        expr
+                          expr1
+                            expr2
+                              expr3
+                                expr4
+                                  expr5
+                                    expr6
+                                      expr7
+                                        expr8
+                                          call
+                                            expr8
+                                              lvalue
+                                                ident	temp
+                                            ident	GetData
+                                            actuals
+                    stmt
+                      expr
+                        expr1
+                          expr2
+                            expr3
+                              expr4
+                                expr5
+                                  expr6
+                                    expr7
+                                      expr8
+                                        call
+                                          expr8
+                                            call
+                                              expr8
+                                                lvalue
+                                                  ident	temp
+                                              ident	GetPrev
+                                              actuals
+                                          ident	SetNext
+                                          actuals
+                                            expr
+                                              expr1
+                                                expr2
+                                                  expr3
+                                                    expr4
+                                                      expr5
+                                                        expr6
+                                                          expr7
+                                                            expr8
+                                                              call
+                                                                expr8
+                                                                  lvalue
+                                                                    ident	temp
+                                                                ident	GetNext
+                                                                actuals
+                    stmt
+                      expr
+                        expr1
+                          expr2
+                            expr3
+                              expr4
+                                expr5
+                                  expr6
+                                    expr7
+                                      expr8
+                                        call
+                                          expr8
+                                            call
+                                              expr8
+                                                lvalue
+                                                  ident	temp
+                                              ident	GetNext
+                                              actuals
+                                          ident	SetPrev
+                                          actuals
+                                            expr
+                                              expr1
+                                                expr2
+                                                  expr3
+                                                    expr4
+                                                      expr5
+                                                        expr6
+                                                          expr7
+                                                            expr8
+                                                              call
+                                                                expr8
+                                                                  lvalue
+                                                                    ident	temp
+                                                                ident	GetPrev
+                                                                actuals
+            stmt
+              returnstmt
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	val
+  decl
+    functiondecl
+      type
+      ident	main
+      formals
+      stmtblock
+        variabledecl
+          variable
+            type
+              ident	Queue
+            ident	q
+        variabledecl
+          variable
+            type
+            ident	i
+        stmt
+          expr
+            lvalue
+              ident	q
+            expr
+              expr1
+                expr2
+                  expr3
+                    expr4
+                      expr5
+                        expr6
+                          expr7
+                            expr8
+                              ident	Queue
+        stmt
+          expr
+            expr1
+              expr2
+                expr3
+                  expr4
+                    expr5
+                      expr6
+                        expr7
+                          expr8
+                            call
+                              expr8
+                                lvalue
+                                  ident	q
+                              ident	Init
+                              actuals
+        stmt
+          forstmt
+            expr
+              lvalue
+                ident	i
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                constant
+                                  intconstant
+                                    integer	0
+            expr
+              expr1
+                expr2
+                  expr3
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                lvalue
+                                  ident	i
+                    expr4
+                      expr5
+                        expr6
+                          expr7
+                            expr8
+                              constant
+                                intconstant
+                                  integer	10
+            expr
+              lvalue
+                ident	i
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	i
+                          expr6
+                            expr7
+                              expr8
+                                constant
+                                  intconstant
+                                    integer	1
+            stmt
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                call
+                                  expr8
+                                    lvalue
+                                      ident	q
+                                  ident	EnQueue
+                                  actuals
+                                    expr
+                                      expr1
+                                        expr2
+                                          expr3
+                                            expr4
+                                              expr5
+                                                expr6
+                                                  expr7
+                                                    expr8
+                                                      lvalue
+                                                        ident	i
+        stmt
+          forstmt
+            expr
+              lvalue
+                ident	i
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                constant
+                                  intconstant
+                                    integer	0
+            expr
+              expr1
+                expr2
+                  expr3
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                lvalue
+                                  ident	i
+                    expr4
+                      expr5
+                        expr6
+                          expr7
+                            expr8
+                              constant
+                                intconstant
+                                  integer	4
+            expr
+              lvalue
+                ident	i
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	i
+                          expr6
+                            expr7
+                              expr8
+                                constant
+                                  intconstant
+                                    integer	1
+            stmt
+              printstmt
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  call
+                                    expr8
+                                      lvalue
+                                        ident	q
+                                    ident	DeQueue
+                                    actuals
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  constant
+                                    stringconstant	" "
+        stmt
+          printstmt
+            expr
+              expr1
+                expr2
+                  expr3
+                    expr4
+                      expr5
+                        expr6
+                          expr7
+                            expr8
+                              constant
+                                stringconstant	"\n"
+        stmt
+          forstmt
+            expr
+              lvalue
+                ident	i
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                constant
+                                  intconstant
+                                    integer	0
+            expr
+              expr1
+                expr2
+                  expr3
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                lvalue
+                                  ident	i
+                    expr4
+                      expr5
+                        expr6
+                          expr7
+                            expr8
+                              constant
+                                intconstant
+                                  integer	10
+            expr
+              lvalue
+                ident	i
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	i
+                          expr6
+                            expr7
+                              expr8
+                                constant
+                                  intconstant
+                                    integer	1
+            stmt
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                call
+                                  expr8
+                                    lvalue
+                                      ident	q
+                                  ident	EnQueue
+                                  actuals
+                                    expr
+                                      expr1
+                                        expr2
+                                          expr3
+                                            expr4
+                                              expr5
+                                                expr6
+                                                  expr7
+                                                    expr8
+                                                      lvalue
+                                                        ident	i
+        stmt
+          forstmt
+            expr
+              lvalue
+                ident	i
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                constant
+                                  intconstant
+                                    integer	0
+            expr
+              expr1
+                expr2
+                  expr3
+                    expr3
+                      expr4
+                        expr5
+                          expr6
+                            expr7
+                              expr8
+                                lvalue
+                                  ident	i
+                    expr4
+                      expr5
+                        expr6
+                          expr7
+                            expr8
+                              constant
+                                intconstant
+                                  integer	17
+            expr
+              lvalue
+                ident	i
+              expr
+                expr1
+                  expr2
+                    expr3
+                      expr4
+                        expr5
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  lvalue
+                                    ident	i
+                          expr6
+                            expr7
+                              expr8
+                                constant
+                                  intconstant
+                                    integer	1
+            stmt
+              printstmt
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  call
+                                    expr8
+                                      lvalue
+                                        ident	q
+                                    ident	DeQueue
+                                    actuals
+                expr
+                  expr1
+                    expr2
+                      expr3
+                        expr4
+                          expr5
+                            expr6
+                              expr7
+                                expr8
+                                  constant
+                                    stringconstant	" "
+        stmt
+          printstmt
+            expr
+              expr1
+                expr2
+                  expr3
+                    expr4
+                      expr5
+                        expr6
+                          expr7
+                            expr8
+                              constant
+                                stringconstant	"\n"

@@ -134,9 +134,18 @@ doubleconstant : /[0-9]+\\.[0-9]*([eE][+-]?[0-9]+)?/
 
 ident : /[a-zA-Z][a-zA-Z0-9_]{,30}/
 
+SINGLE_LINE_COMMENT : /\/\/[^\\n]*\\n/
+MULTI_LINE_COMMENT : /\/\*([^\\*]|(\*)+[^\\*\\/])*(\*)+\//
+
 %import common.WS -> WHITESPACE
 %ignore WHITESPACE
+%ignore SINGLE_LINE_COMMENT
+%ignore MULTI_LINE_COMMENT
+
 """
-x = input()  # "int main(){(23423).ali();}"
+
+f = open("tests/t1.in", "r")
+x = f.read()
+
 parser = Lark(grammar, parser='lalr')
 print(parser.parse(x).pretty())

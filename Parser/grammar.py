@@ -39,21 +39,34 @@ prototype : type ident "(" formals ")" ";"
 
 stmtblock : "{" (variabledecl)* (stmt)* "}"
 
-stmt : (expr)? ";"
-     | ifstmt
-     | whilestmt
-     | forstmt
-     | breakstmt
-     | returnstmt
-     | printstmt
-     | stmtblock
+stmt : closestmt
+     | openstmt
 
-ifstmt : "if" "(" expr ")" stmt "else" stmt -> ifwithelsestmt
-     | "if" "(" expr ")" stmt
+closestmt : (expr)? ";"
+          | ifstmtclose
+          | whilestmtclose
+          | forstmtclose
+          | breakstmt
+          | returnstmt
+          | printstmt
+          | stmtblock
+          
+openstmt : ifstmtopen
+         | whilestmtopen
+         | forstmtopen
 
-whilestmt : "while" "(" expr ")" stmt
+ifstmtclose : "if" "(" expr ")" closestmt "else" closestmt
 
-forstmt : "for" "(" (expr)? ";" expr ";" (expr)? ")" stmt
+ifstmtopen : "if" "(" expr ")" closestmt "else" openstmt
+           | "if" "(" expr ")" stmt
+
+whilestmtopen : "while" "(" expr ")" openstmt
+
+whilestmtclose : "while" "(" expr ")" closestmt
+
+forstmtopen : "for" "(" (expr)? ";" expr ";" (expr)? ")" openstmt
+
+forstmtclose : "for" "(" (expr)? ";" expr ";" (expr)? ")" closestmt
 
 returnstmt : "return" (expr)? ";"
 
@@ -150,8 +163,8 @@ MULTI_LINE_COMMENT : /\/\*([^\\*]|(\*)+[^\\*\\/])*(\*)+\//
 
 
 def main(argv):
-    inputfile = ''
-    outputfile = ''
+    inputfile = 'nestedIf.decaf'
+    outputfile = 'out.txt'
 
     try:
         opts, args = getopt.getopt(argv, "i:o:", [])

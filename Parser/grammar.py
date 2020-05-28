@@ -48,7 +48,8 @@ stmt : (expr)? ";"
      | printstmt
      | stmtblock
 
-ifstmt : "if" "(" expr ")" stmt ("else" stmt)?
+ifstmt : "if" "(" expr ")" stmt "else" stmt -> ifwithelsestmt
+     | "if" "(" expr ")" stmt
 
 whilestmt : "while" "(" expr ")" stmt
 

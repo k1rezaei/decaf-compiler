@@ -1,0 +1,12 @@
+void Resolve(int dealer) {
+    if (total == 21)
+        if (heshmant)
+            salam = 5;
+        else
+            salam = 10;
+    else
+        if (total > 21)
+            lose = 1;
+        else
+            win = 1;
+ }

@@ -14,15 +14,15 @@ variabledecl : variable ";"
 
 variable : type ident
 
-type : "int"
-     | "double"
-     | "bool"
-     | "string"
-     | ident
-     | type "[]"
+type : "int" -> int
+     | "double" -> double
+     | "bool" -> bool
+     | "string" -> string
+     | ident 
+     | type "[]" -> array_indexation
 
 functiondecl : type ident "(" formals ")" stmtblock
-            | "void" ident "(" formals ")" stmtblock
+            | "void" ident "(" formals ")" stmtblock -> void_functiondecl
 
 formals : (variable ( "," variable)*)?
 
@@ -61,55 +61,55 @@ breakstmt : "break" ";"
 printstmt : "Print" "(" expr ("," expr)* ")" ";"
 
 
-expr :  expr1
-     | lvalue "=" expr
+expr :  expr1 
+     | lvalue "=" expr -> assignment
 
-expr1 : expr2
-     | expr1 "||" expr2
+expr1 : expr2 -> change_priority_level
+     | expr1 "||" expr2 -> logical_or
 
-expr2 : expr3
-     | expr2 "&&" expr3
+expr2 : expr3 -> change_priority_level
+     | expr2 "&&" expr3 -> logical_and
 
-expr3 : expr4
-     | expr3 "==" expr4
-     | expr3 "!=" expr4
+expr3 : expr4 -> change_priority_level
+     | expr3 "==" expr4 -> equal_to
+     | expr3 "!=" expr4 -> not_equal_to
 
-expr4 : expr5
-     | expr4 "<" expr5
-     | expr4 "<=" expr5
-     | expr4 ">" expr5
-     | expr4 ">=" expr5
+expr4 : expr5 -> change_priority_level
+     | expr4 "<" expr5 -> less_than
+     | expr4 "<=" expr5 -> less_than_or_eq_to
+     | expr4 ">" expr5 -> greater_than
+     | expr4 ">=" expr5 -> greater_than_or_eq_to
 
-expr5 : expr6
-     | expr5 "+" expr6
-     | expr5 "-" expr6
+expr5 : expr6 -> change_priority_level
+     | expr5 "+" expr6 -> add
+     | expr5 "-" expr6 -> subtract
 
-expr6 : expr7
-     | expr6 "*" expr7
-     | expr6 "/" expr7
-     | expr6 "%" expr7
+expr6 : expr7 -> change_priority_level
+     | expr6 "*" expr7 -> multiply
+     | expr6 "/" expr7 -> divide
+     | expr6 "%" expr7 -> modulo
 
-expr7 : expr8
-     | "-" expr7
-     | "!" expr7
+expr7 : expr8 -> change_priority_level
+     | "-" expr7 -> unary_negate
+     | "!" expr7 -> not
 
 expr8 : constant
      | lvalue
-     | "this"
+     | "this" -> this
      | call 
-     | "ReadInteger" "(" ")"
-     | "ReadLine" "(" ")"
-     | "new" ident
-     | "NewArray" "(" expr "," type ")"
-     |"(" expr ")"
+     | "ReadInteger" "(" ")" -> read_integer
+     | "ReadLine" "(" ")" -> read_line
+     | "new" ident -> new
+     | "NewArray" "(" expr "," type ")" -> new_array
+     |"(" expr ")" -> parentheses
 
 
 lvalue : ident
-       | expr8 "." ident
-       | expr8 "[" expr "]"
+       | expr8 "." ident -> dot
+       | expr8 "[" expr "]" -> subscript
 
-call : ident "(" actuals ")"
-     | expr8 "." ident "(" actuals ")"
+call : ident "(" actuals ")" 
+     | expr8 "." ident "(" actuals ")"  
 
 actuals : expr ("," expr)*
         |
@@ -118,13 +118,14 @@ constant : intconstant
          | doubleconstant
          | boolconstant
          | stringconstant
-         | "null"
+         | "null" -> null
 
-boolconstant : "false"
-             | "true"
+boolconstant : "false" -> false
+             | "true" -> true
 
 
-intconstant : (integer | hexint)
+intconstant : integer 
+            | hexint -> hex_intcontstant
 
 integer : /[0-9]+/
 
@@ -169,7 +170,7 @@ def main(argv):
     input_file = open("tests/" + inputfile, "r")
     x = input_file.read()
 
-    parser = Lark(grammar, parser='lalr')
+    parser = Lark(grammar, parser='lalr', debug=True)
 
     if outputfile == '':
         print(parser.parse(x).pretty())

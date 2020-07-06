@@ -1,4 +1,4 @@
 int main(){
-    int for;
+    int s;
     i=45*234 + 234*234%23;
 }

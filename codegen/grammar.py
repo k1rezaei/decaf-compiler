@@ -1,7 +1,5 @@
-import sys, getopt
-import re
-
 from lark import Lark
+from codegen.parsetree import ParseTree
 
 grammar = """
 start : (decl)+
@@ -15,20 +13,37 @@ variabledecl : variable ";"
 
 variable : type ident
 
-type : "int" -> int
-     | "double" -> double
-     | "bool" -> bool
-     | "string" -> string
+type : typepri (arr*)?
+
+typepri : int
+     | double
+     | bool
+     | string
      | ident 
-     | type "[]" -> array_indexation
+
+arr : "[]"
+
+int : "int"
+
+double : "double" 
+
+bool : "bool"
+
+string : "string"
 
 functiondecl : type ident "(" formals ")" stmtblock
-            | "void" ident "(" formals ")" stmtblock -> void_functiondecl
+            | void ident "(" formals ")" stmtblock
+
+void : "void"
 
 formals : (variable ( "," variable)*)?
 
 
-classdecl : "class" ident ("extends" ident)? ("implements" ident ("," ident)* )? "{" field* "}"
+classdecl : "class" ident (extends ident)? (implements ident ("," ident)* )? "{" field* "}"
+
+extends : "extends"
+
+implements : "implements"
 
 field : variabledecl
       | functiondecl
@@ -36,7 +51,7 @@ field : variabledecl
 interfacedecl : "interface" ident "{" prototype* "}"
 
 prototype : type ident "(" formals ")" ";"
-          | "void" ident "(" formals ")" ";"
+          | void ident "(" formals ")" ";"
 
 stmtblock : "{" (variabledecl)* (stmt)* "}"
 
@@ -51,7 +66,7 @@ closestmt : (expr)? ";"
           | returnstmt
           | printstmt
           | stmtblock
-          
+
 openstmt : ifstmtopen
          | whilestmtopen
          | forstmtopen
@@ -76,55 +91,91 @@ breakstmt : "break" ";"
 printstmt : "Print" "(" expr ("," expr)* ")" ";"
 
 
-expr :  expr1 
-     | lvalue "=" expr -> assignment
+expr :  expr1
+     | lvalue assign expr
 
-expr1 : expr2 -> change_priority_level
-     | expr1 "||" expr2 -> logical_or
+assign : "="
 
-expr2 : expr3 -> change_priority_level
-     | expr2 "&&" expr3 -> logical_and
+expr1 : expr2 (bitor expr2)*
 
-expr3 : expr4 -> change_priority_level
-     | expr3 "==" expr4 -> equal_to
-     | expr3 "!=" expr4 -> not_equal_to
+bitor : "||"
 
-expr4 : expr5 -> change_priority_level
-     | expr4 "<" expr5 -> less_than
-     | expr4 "<=" expr5 -> less_than_or_eq_to
-     | expr4 ">" expr5 -> greater_than
-     | expr4 ">=" expr5 -> greater_than_or_eq_to
+expr2 : expr3 (bitand expr3)*
 
-expr5 : expr6 -> change_priority_level
-     | expr5 "+" expr6 -> add
-     | expr5 "-" expr6 -> subtract
+bitand : "&&"
 
-expr6 : expr7 -> change_priority_level
-     | expr6 "*" expr7 -> multiply
-     | expr6 "/" expr7 -> divide
-     | expr6 "%" expr7 -> modulo
+expr3 : expr4  ((nequal | equal) expr4)*
 
-expr7 : expr8 -> change_priority_level
-     | "-" expr7 -> unary_negate
-     | "!" expr7 -> not
+equal : "=="
+
+nequal : "!="
+
+expr4 : expr5 ( (grq | gr | le | leq) expr5)* 
+
+le : "<"
+
+leq : "<="
+
+gr : ">"
+
+grq : ">="
+
+expr5 : expr6 ( (sub | add) expr6 )*
+
+add : "+"
+
+sub : "-"
+
+expr6 : expr7 ( (mul | div | mod ) expr7)*
+
+mul : "*"
+
+div : "/"
+
+mod : "%"
+
+expr7 : expr8 ( (not | neg) expr7)*
+
+neg : "-"
+
+not : "!"
 
 expr8 : constant
      | lvalue
-     | "this" -> this
+     | this
      | call 
-     | "ReadInteger" "(" ")" -> read_integer
-     | "ReadLine" "(" ")" -> read_line
-     | "new" ident -> new
-     | "NewArray" "(" expr "," type ")" -> new_array
-     |"(" expr ")" -> parentheses
+     | readint "(" ")"
+     | readline "(" ")"
+     | new ident
+     | newarray "(" expr "," type ")"
+     |parop expr parcl
 
+new : "new"
+
+readint : "ReadInteger"
+
+readline : "ReadLine"
+
+newarray : "NewArray"
+
+parop : "("
+
+parcl : ")"
+
+this : "this"
 
 lvalue : ident
-       | expr8 "." ident -> dot
-       | expr8 "[" expr "]" -> subscript
+       | expr8 dot ident 
+       | expr8 arin expr arout
+
+dot : "."
+
+arin : "["
+
+arout : "]"
 
 call : ident "(" actuals ")" 
-     | expr8 "." ident "(" actuals ")"  
+     | expr8 dot ident "(" actuals ")"  
 
 actuals : expr ("," expr)*
         |
@@ -133,14 +184,19 @@ constant : intconstant
          | doubleconstant
          | boolconstant
          | stringconstant
-         | "null" -> null
+         | null
 
-boolconstant : "false" -> false
-             | "true" -> true
+null : "null"
 
+boolconstant : false
+             | true
 
-intconstant : integer 
-            | hexint -> hex_intcontstant
+true : "true"
+
+false : "false"
+
+intconstant : integer
+            | hexint
 
 integer : /[0-9]+/
 
@@ -164,16 +220,14 @@ MULTI_LINE_COMMENT : /\/\*([^\\*]|(\*)+[^\\*\\/])*(\*)+\//
 keyWords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'null', 'this', 'extends', 'implements',
             'for', 'while', 'if', 'else', 'return', 'break', 'new', 'NewArray', 'Print', 'ReadInteger', 'ReadLine']
 
-
-parser = Lark(grammar, parser='lalr', debug=True)
-code = """
-    int main(){
-        int a;
-        a = 0;
-        if (a  < 0)
-            for (a = 0; a < 10; a = a + 1) 
-                if (a > 0)
-                    return 5;
-    }
-    """
-print(parser.parse(code).pretty())
+parser = Lark(grammar, parser='lalr', debug=False)
+code = ""
+for i in range(5):
+    code += input()
+x = parser.parse(code)
+y = ParseTree(x)
+print(y)
+s = 0
+for j in y.nodes:
+    print(s, " ", j)
+    s += 1

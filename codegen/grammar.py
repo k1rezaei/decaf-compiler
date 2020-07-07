@@ -7,7 +7,6 @@ start : (decl)+
 decl : variabledecl
      | functiondecl
      | classdecl
-     | interfacedecl
 
 variabledecl : variable ";"
 
@@ -39,7 +38,7 @@ void : "void"
 formals : (variable ( "," variable)*)?
 
 
-classdecl : "class" ident (extends ident)? (implements ident ("," ident)* )? "{" field* "}"
+classdecl : "class" ident (extends ident)? "{" field* "}"
 
 extends : "extends"
 
@@ -47,12 +46,7 @@ implements : "implements"
 
 field : variabledecl
       | functiondecl
-
-interfacedecl : "interface" ident "{" prototype* "}"
-
-prototype : type ident "(" formals ")" ";"
-          | void ident "(" formals ")" ";"
-
+      
 stmtblock : "{" (variabledecl)* (stmt)* "}"
 
 stmt : closestmt
@@ -96,21 +90,25 @@ expr :  expr1
 
 assign : "="
 
-expr1 : expr2 (bitor expr2)*
+expr1 : expr1 bitor expr2
+        | expr2
 
 bitor : "||"
 
-expr2 : expr3 (bitand expr3)*
+expr2 : expr2 bitand expr3
+        | expr3
 
 bitand : "&&"
 
-expr3 : expr4  ((nequal | equal) expr4)*
+expr3 : expr3 (nequal | equal) expr4
+        | expr4
 
 equal : "=="
 
 nequal : "!="
 
-expr4 : expr5 ( (grq | gr | le | leq) expr5)* 
+expr4 : expr4 (grq | gr | le | leq) expr5
+        | expr5
 
 le : "<"
 
@@ -120,13 +118,15 @@ gr : ">"
 
 grq : ">="
 
-expr5 : expr6 ( (sub | add) expr6 )*
+expr5 : expr5 (sub | add) expr6
+        | expr6
 
 add : "+"
 
 sub : "-"
 
-expr6 : expr7 ( (mul | div | mod ) expr7)*
+expr6 : expr6 (mul | div | mod ) expr7
+        | expr7
 
 mul : "*"
 
@@ -134,7 +134,8 @@ div : "/"
 
 mod : "%"
 
-expr7 : expr8 ( (not | neg) expr7)*
+expr7 : (not | neg) expr7
+        | expr8
 
 neg : "-"
 
@@ -148,7 +149,7 @@ expr8 : constant
      | readline "(" ")"
      | new ident
      | newarray "(" expr "," type ")"
-     |parop expr parcl
+     | parop expr parcl
 
 new : "new"
 

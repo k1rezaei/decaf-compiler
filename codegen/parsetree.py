@@ -1,6 +1,20 @@
 from lark import Tree
 
 
+def data_transform(data):
+    if str.startswith(data, "expr"):
+        return "expr"
+    if str.startswith(data, "forstmt"):
+        return "forstmt"
+    if str.startswith(data, "whilestmt"):
+        return "whilestmt"
+    if str.startswith(data, "forstmt"):
+        return "forstmt"
+    if data == "closestmt" or data == "openstmt":
+        return "stmt"
+    return data
+
+
 class Node:
     def __init__(self, data, parent):
         self.data = data
@@ -21,10 +35,10 @@ class ParseTree:
 
     def construct(self, lark_tree, index):
         if not isinstance(lark_tree, Tree):
-            self.nodes.append(Node(lark_tree, index))
+            self.nodes.append(Node(data_transform(lark_tree), index))
             return len(self.nodes) - 1
         next_index = len(self.nodes)
-        self.nodes.append(Node(lark_tree.data, index))
+        self.nodes.append(Node(data_transform(lark_tree.data), index))
         for child in lark_tree.children:
             ret = self.construct(child, next_index)
             self.nodes[next_index].add_child(ret)

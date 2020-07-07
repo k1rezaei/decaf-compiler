@@ -226,8 +226,8 @@ code = ""
 for i in range(5):
     code += input()
 x = parser.parse(code)
-y = ParseTree(x)
-print(y)
+parseTree = ParseTree(x)
+print(parseTree)
 s = 0
 for j in y.nodes:
     print(s, " ", j)

@@ -1,4 +1,4 @@
-# from codegen.grammar import parseTree
+from codegen.grammar import parseTree
 
 
 ####
@@ -35,7 +35,7 @@ def emit(st):
     pass
 
 
-def CgenIf(expr, stmt1, stmt2):
+def CgenIf1(expr, stmt1, stmt2):
     global used_labels, disFp
     l1 = create_label(used_labels)
     l2 = create_label(used_labels + 1)
@@ -58,7 +58,7 @@ def CgenIf(expr, stmt1, stmt2):
     return
 
 
-def CgenIf(expr, stmt):
+def CgenIf2(expr, stmt):
     global used_labels, disFp
     l1 = create_label(used_labels)
     used_labels += 1
@@ -76,5 +76,89 @@ def CgenIf(expr, stmt):
     return
 
 
+def CgenWhile(node):
+    global used_labels, disFp
+    expr = parseTree.nodes[node].child[0]
+    stmt = parseTree.nodes[node].child[1]
+    top = disFp
+    l1 = create_label(used_labels)
+    l2 = create_label(used_labels + 1)
+    parseTree.nodes[node].attribute = l2
+    used_labels += 2
+    used_labels += 1
+    t = Cgen(expr)
+    if t.type != 'bool':
+        print("Error!")
+        exit(2)
+    emit(l1 + ":")
+    emit("lw $t0, " + t.to_str())
+    emit("addi $sp, $sp, " + str(top - disFp))
+    emit("beqz $t0, " + l2)
+    Cgen(stmt)
+    emit("addi $sp, $sp, " + str(top - disFp))
+    emit("j " + l1)
+    emit(l2 + ":")
+    return
+
+
+def CgenFor(node):
+    nod = parseTree.nodes[node]
+    expr1 = nod.child[0]
+    expr2 = nod.child[1]
+    expr3 = nod.child[2]
+    stm = nod.child[3]
+    global used_labels, disFp
+    top = disFp
+    l1 = create_label(used_labels)
+    l2 = create_label(used_labels + 1)
+    parseTree.nodes[node].attribute = l2
+    used_labels += 2
+    Cgen(expr1)
+    emit("addi $sp, $sp, " + str(top - disFp))
+    emit(l1 + ":")
+    t = Cgen(expr2)
+    emit("lw $t0, " + t.to_str())
+    emit("addi $sp, $sp, " + str(top - disFp))
+    emit("beqz $t0, " + l2)
+    Cgen(stm)
+    emit("addi $sp, $sp, " + str(top - disFp))
+    Cgen(expr3)
+    emit("addi $sp, $sp, " + str(top - disFp))
+    emit("j " + l1)
+    emit(l2 + ":")
+    return
+
+
+def CgenBreak(node):
+    parent = parseTree.nodes[node].parent
+    while parent is not None:
+        data = parseTree.nodes[parent].data
+        if data == "whilestmt" or data == "forstmt":
+            break
+        parent = parseTree.nodes[parent].parent
+
+    if parent is None:
+        print("Erro!")
+        exit(2)
+
+    emit("j " + parseTree.nodes[node].attribute)
+    return
+
+
 def Cgen(node):
-    return 1
+    nod = parseTree.nodes[node]
+    st = nod.data
+    if st is "whilestme":
+        CgenWhile(node)
+    elif st is "forstmt":
+        CgenFor(node)
+    elif st is "ifstmt":
+        j = len(nod.child)
+        if j == 2:
+            CgenIf2(nod.child[0], nod.child[1])
+        elif j == 3:
+            CgenIf1(nod.child[0], nod.child[1], nod.child[2])
+    elif st is "breakstmt":
+        CgenBreak(node)
+    else:
+        pass

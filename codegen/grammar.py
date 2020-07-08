@@ -229,6 +229,6 @@ x = parser.parse(code)
 parseTree = ParseTree(x)
 print(parseTree)
 s = 0
-for j in y.nodes:
+for j in parseTree.nodes:
     print(s, " ", j)
     s += 1

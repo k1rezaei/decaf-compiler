@@ -149,7 +149,7 @@ def CgenBreak(node):
         print("Erro!")
         exit(2)
 
-    emit("j " + parseTree.nodes[node].attribute)
+    emit("j " + parseTree.nodes[node].attribute["ex_label"])
     return
 
 

@@ -42,8 +42,6 @@ classdecl : "class" ident (extends ident)? "{" field* "}"
 
 extends : "extends"
 
-implements : "implements"
-
 field : variabledecl
       | functiondecl
       
@@ -74,9 +72,11 @@ whilestmtopen : "while" "(" expr ")" openstmt
 
 whilestmtclose : "while" "(" expr ")" closestmt
 
-forstmtopen : "for" "(" (expr)? ";" expr ";" (expr)? ")" openstmt
+forstmtopen : "for" "(" (expr | nothing) ";" expr ";" (expr | nothing) ")" openstmt
 
-forstmtclose : "for" "(" (expr)? ";" expr ";" (expr)? ")" closestmt
+forstmtclose : "for" "(" (expr | nothing) ";" expr ";" (expr | nothing) ")" closestmt
+
+nothing : 
 
 returnstmt : "return" (expr)? ";"
 
@@ -223,12 +223,12 @@ keyWords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'nu
 
 parser = Lark(grammar, parser='lalr', debug=False)
 code = ""
-for i in range(5):
+for i in range(4):
     code += input()
 x = parser.parse(code)
 parseTree = ParseTree(x)
-print(parseTree)
-s = 0
-for j in parseTree.nodes:
-    print(s, " ", j)
-    s += 1
+# print(parseTree)
+# s = 0
+# for j in parseTree.nodes:
+#     print(s, " ", j)
+#     s += 1

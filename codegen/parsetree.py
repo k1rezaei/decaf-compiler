@@ -20,7 +20,7 @@ class Node:
         self.data = data
         self.parent = parent
         self.child = []
-        self.attribute = None
+        self.attribute = dict()
 
     def add_child(self, index):
         self.child.append(index)

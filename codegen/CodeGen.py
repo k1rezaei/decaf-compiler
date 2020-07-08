@@ -1,6 +1,10 @@
 from codegen.grammar import parseTree
 
 
+used_labels = 1
+disFp = 1
+
+
 ####
 # class for address types
 # mode = 0 -> address from frame pointer
@@ -17,10 +21,6 @@ class Address:
         return str(self.address) + "($zero)"
 
 
-used_labels = 0
-disFp = 1
-
-
 def create_label(num):
     arr = []
     while num != 0:
@@ -32,7 +32,7 @@ def create_label(num):
 
 
 def emit(st):
-    pass
+    print(st)
 
 
 def CgenIf1(expr, stmt1, stmt2):
@@ -111,19 +111,27 @@ def CgenFor(node):
     top = disFp
     l1 = create_label(used_labels)
     l2 = create_label(used_labels + 1)
-    parseTree.nodes[node].attribute = l2
+    parseTree.nodes[node].attribute["ex_label"] = l2
+    parseTree.nodes[node].attribute["st_label"] = l1
     used_labels += 2
     Cgen(expr1)
-    emit("addi $sp, $sp, " + str(top - disFp))
+    if top != disFp:
+        emit("addi $sp, $sp, " + str(top - disFp))
     emit(l1 + ":")
     t = Cgen(expr2)
+    if t.type != 'bool':
+        print("Error!")
+        exit(2)
     emit("lw $t0, " + t.to_str())
-    emit("addi $sp, $sp, " + str(top - disFp))
+    if top != disFp:
+        emit("addi $sp, $sp, " + str(top - disFp))
     emit("beqz $t0, " + l2)
     Cgen(stm)
-    emit("addi $sp, $sp, " + str(top - disFp))
+    if top != disFp:
+        emit("addi $sp, $sp, " + str(top - disFp))
     Cgen(expr3)
-    emit("addi $sp, $sp, " + str(top - disFp))
+    if top != disFp:
+        emit("addi $sp, $sp, " + str(top - disFp))
     emit("j " + l1)
     emit(l2 + ":")
     return
@@ -150,6 +158,8 @@ def Cgen(node):
     st = nod.data
     if st is "whilestme":
         CgenWhile(node)
+    elif st is "nothing":
+        return None
     elif st is "forstmt":
         CgenFor(node)
     elif st is "ifstmt":
@@ -161,4 +171,4 @@ def Cgen(node):
     elif st is "breakstmt":
         CgenBreak(node)
     else:
-        pass
+        return Address(124, 0, 'bool')

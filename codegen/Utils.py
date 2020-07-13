@@ -1,4 +1,5 @@
 from codegen.Error import error
+from codegen.CodeGen import emit
 
 class Variable:
     def __init__(self, name, type, address):
@@ -16,6 +17,17 @@ class Address:
     def __init__(self, addr, mode):
         self.addr = addr
         self.mode = mode
+
+    def load_address(self):
+        if self.mode == 0:
+            emit("addi $s0, $fp, " + str(self.addr))
+        elif self.mode == 1:
+            emit("li $s0," + str(self.addr))
+        else:
+            emit("addi $s0, $fp, " + str(self.addr[0]))
+            emit("lw $s0, 0($s0)")
+            emit("addi $s0, $s0, " + str(self.addr[1]))
+        return
 
     def to_str(self):
         if self.mode == 0:

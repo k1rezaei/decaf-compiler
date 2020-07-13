@@ -386,7 +386,9 @@ def cgen_stmt(node_id):
         cgen_expr(child_id)
     elif child.data is "breakstmt":
         cgen_break(child_id)
-    # TODO cgen_print_stmt, cgen_return_stmt
+    elif child.data is "printstmt":
+        cgen_print_stmt(child_id)
+# TODO cgen_return_stmt
 
 
 def cgen_stmt_block(node_id):

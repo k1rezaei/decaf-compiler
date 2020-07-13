@@ -205,6 +205,58 @@ def cgen_expr_new(node):
     pass
 
 
+def cgen_newarray(node):
+    pass
+
+
+def cgen_expr_assign(node):
+    pass
+
+
+def cgen_expr_bitor(node):
+    pass
+
+
+def cgen_expr_bitand(node):
+    pass
+
+
+def cgen_expr_equal(node):
+    pass
+
+
+def cgen_expr_grq(node):
+    pass
+
+
+def cgen_expr_gr(node):
+    pass
+
+
+def cgen_expr_le(node):
+    pass
+
+
+def cgen_expr_leq(node):
+    pass
+
+
+def cgen_expr_sub(node):
+    pass
+
+
+def cgen_expr_mul(node):
+    pass
+
+
+def cgen_expr_div(node):
+    pass
+
+
+def cgen_expr_mod(node):
+    pass
+
+
 def cgen_expr(node_id):
     node = parseTree.nodes[node_id]
 
@@ -240,7 +292,39 @@ def cgen_expr(node_id):
     elif len(node.child) == 3:
         mid_child = node.ref_child[1]
 
+        if mid_child.data == 'assign':
+            cgen_expr_assign(node)
+        elif mid_child.data == 'bitor':
+            cgen_expr_bitor(node)
+        elif mid_child.data == 'bitand':
+            cgen_expr_bitand(node)
+        elif mid_child.data == 'equal':
+            cgen_expr_equal(node)
+        elif mid_child.data == 'grq':
+            cgen_expr_grq(node)
+        elif mid_child.data == 'gr':
+            cgen_expr_gr(node)
+        elif mid_child.data == 'le':
+            cgen_expr_le(node)
+        elif mid_child.data == 'leq':
+            cgen_expr_leq(node)
+        elif mid_child.data == 'sub':
+            cgen_expr_sub(node)
+        elif mid_child.data == 'add':
+            cgen_expr_add(node)
+        elif mid_child.data == 'mul':
+            cgen_expr_mul(node)
+        elif mid_child.data == 'div':
+            cgen_expr_div(node)
+        elif mid_child.data == 'mod':
+            cgen_expr_mod(node)
+        elif mid_child.data == 'expr':
+            left_child = node.ref_child[0]
 
+            if left_child.data == 'parop':
+                cgen_expr(node.child[0])
+            elif left_child.data == 'newarray':
+                cgen_newarray(node)
 
     # TODO {seyed}
     return Node("", 0)

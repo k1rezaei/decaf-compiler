@@ -212,46 +212,127 @@ def cgen_expr_new(node):
     pass
 
 
+def cgen_newarray(node):
+    pass
+
+
+def cgen_expr_assign(node):
+    pass
+
+
+def cgen_expr_bitor(node):
+    pass
+
+
+def cgen_expr_bitand(node):
+    pass
+
+
+def cgen_expr_equal(node):
+    pass
+
+
+def cgen_expr_grq(node):
+    pass
+
+
+def cgen_expr_gr(node):
+    pass
+
+
+def cgen_expr_le(node):
+    pass
+
+
+def cgen_expr_leq(node):
+    pass
+
+
+def cgen_expr_sub(node):
+    pass
+
+
+def cgen_expr_mul(node):
+    pass
+
+
+def cgen_expr_div(node):
+    pass
+
+
+def cgen_expr_mod(node):
+    pass
+
+
 def cgen_expr(node_id):
     node = parseTree.nodes[node_id]
-
 
     if len(node.child) == 1:
         child = node.ref_child[0]
 
         if child.data == 'expr':
-            cgen_expr(node.child[0])
+            return cgen_expr(node.child[0])
         elif child.data == 'readline':
-            cgen_readline(child)
+            return cgen_readline(child)
         elif child.data == 'readint':
-            cgen_readint(child)
+            return cgen_readint(child)
         elif child.data == 'call':
-            cgen_call(child)
+            return cgen_call(child)
         elif child.data == 'this':
-            cgen_this(child)
+            return cgen_this(child)
         elif child.data == 'lvalue':
-            cgen_lvalue(child)
+            return cgen_lvalue(child)
         elif child.data == 'constant':
-            cgen_constant(child)
+            return cgen_constant(child)
 
     elif len(node.child) == 2:
         child = node.ref_child[0]
 
         if child.data == 'not':
-            cgen_expr_not(node)
+            return cgen_expr_not(node)
         elif child.data == 'neg':
-            cgen_expr_neg(node)
+            return cgen_expr_neg(node)
         elif child.data == 'not':
-            cgen_expr_new(node)
+            return cgen_expr_new(node)
 
     elif len(node.child) == 3:
         mid_child = node.ref_child[1]
 
+        if mid_child.data == 'assign':
+            return cgen_expr_assign(node)
+        elif mid_child.data == 'bitor':
+            return cgen_expr_bitor(node)
+        elif mid_child.data == 'bitand':
+            return cgen_expr_bitand(node)
+        elif mid_child.data == 'equal':
+            return cgen_expr_equal(node)
+        elif mid_child.data == 'grq':
+            return cgen_expr_grq(node)
+        elif mid_child.data == 'gr':
+            return cgen_expr_gr(node)
+        elif mid_child.data == 'le':
+            return cgen_expr_le(node)
+        elif mid_child.data == 'leq':
+            return cgen_expr_leq(node)
+        elif mid_child.data == 'sub':
+            return cgen_expr_sub(node)
+        elif mid_child.data == 'add':
+            return cgen_expr_add(node)
+        elif mid_child.data == 'mul':
+            return cgen_expr_mul(node)
+        elif mid_child.data == 'div':
+            return cgen_expr_div(node)
+        elif mid_child.data == 'mod':
+            return cgen_expr_mod(node)
+        elif mid_child.data == 'expr':
+            left_child = node.ref_child[0]
 
+            if left_child.data == 'parop':
+                return cgen_expr(node.child[0])
+            elif left_child.data == 'newarray':
+                return cgen_newarray(node)
 
-    # TODO {seyed}
     return Node("", 0)
-
 
 
 def cgen_if(if_id):

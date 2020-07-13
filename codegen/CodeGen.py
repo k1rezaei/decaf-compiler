@@ -145,7 +145,7 @@ def get_name(ident_id):
 
 
 def cgen_variable(variable_id):
-    global disFp
+    global disFp, symbolTable
     node = parseTree.node[variable_id]
     type_id = node.child[0]
     ident_id = node.child[1]
@@ -204,6 +204,7 @@ def cgen_stmt(node_id):
 
 
 def cgen_stmt_block(node_id):
+    global symbolTable
     symbolTable.add_scope()
     node = parseTree.nodes[node_id]
 

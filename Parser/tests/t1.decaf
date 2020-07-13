@@ -1,13 +1,4 @@
-int a;
-int b;
-//daskdjaskljdal
-int c; //dasdsqkljdlk
-int d;
-/*dasdk;lsadk
-
- adsad a***********jl////////* /k l jlaksjdl; */
-int e; /*dasdashkjd*/
-
-//djlkasjdla
-int g;
-
+int main() {
+    int a;
+    a = b = c = d;
+}

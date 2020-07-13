@@ -223,12 +223,12 @@ keyWords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'nu
 
 parser = Lark(grammar, parser='lalr', debug=False)
 code = ""
-for i in range(4):
+for i in range(5):
     code += input()
 x = parser.parse(code)
 parseTree = ParseTree(x)
-# print(parseTree)
-# s = 0
-# for j in parseTree.nodes:
-#     print(s, " ", j)
-#     s += 1
+print(parseTree)
+s = 0
+for j in parseTree.nodes:
+    print(s, " ", j)
+    s += 1

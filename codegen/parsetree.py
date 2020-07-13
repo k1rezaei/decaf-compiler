@@ -20,10 +20,14 @@ class Node:
         self.data = data
         self.parent = parent
         self.child = []
+        self.ref_child = []
         self.attribute = dict()
 
-    def add_child(self, index):
+    def add_child(self, index, node):
         self.child.append(index)
+        self.ref_child.append(node)
+
+
 
     def __repr__(self):
         return "[" + str(self.data) + ", " + str(self.parent) + ", " + str(self.child) + "]"
@@ -42,5 +46,5 @@ class ParseTree:
         self.nodes.append(Node(data_transform(lark_tree.data), index))
         for child in lark_tree.children:
             ret = self.construct(child, next_index)
-            self.nodes[next_index].add_child(ret)
+            self.nodes[next_index].add_child(ret, self.nodes[ret])
         return next_index

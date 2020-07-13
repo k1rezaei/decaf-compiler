@@ -364,9 +364,7 @@ def cgen_print_stmt(print_id):
             emit("li $v0, 1")
             emit("syscall")
 
-        if disFp != top:
-            emit("addi $sp, $sp, " + str(top - disFp))
-            disFp = top
+        align_stack(top)
 
 
 def cgen_stmt(node_id):

@@ -338,6 +338,30 @@ def cgen_if(if_id):
     # TODO {sharifi} mage bazam halat dare?
 
 
+def cgen_print_stmt(print_id):
+    global disFp
+    top = disFp
+
+    node = parseTree.nodes[print_id]
+    for child_id in node.child:
+        expr = cgen_expr(child_id)
+        address = expr.attribute["address"]
+        type = expr.attribute["type"]
+        address.load_address()
+        if type is "double":
+            emit("l.d $f12, 0($s0)")
+            emit("li $v0, 3")
+            emit("syscall")
+        else:
+            emit("lw $a0, 0($s0)")
+            emit("li $v0, 1")
+            emit("syscall")
+
+        if disFp != top:
+            emit("addi $sp, $sp, " + str(top - disFp))
+            disFp = top
+
+
 def cgen_stmt(node_id):
     node = parseTree.nodes[node_id]
     child_id = node.child[0]
@@ -377,6 +401,7 @@ def cgen_stmt_block(node_id):
 
     if top != disFp:
         emit("addi $sp, $sp, " + str(top - disFp))
+        disFp = top
 
     symbolTable.remove_scope()
 

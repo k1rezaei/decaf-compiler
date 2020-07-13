@@ -30,7 +30,7 @@ def cgen_if1(expr, stmt1, stmt2):
     used_labels += 2
     top = disFp
     t1 = cgen_expr(expr)
-    if t1.type != 'bool':   ##TODO {sharifi} In bayad bere attribute --> .attribute["type"]
+    if t1.type != 'bool':  ##TODO {sharifi} In bayad bere attribute --> .attribute["type"]
         print("Error")
         exit(2)
     emit("lw $t0, " + t1.to_str())  ##TODO {sharifi} attribute
@@ -52,7 +52,7 @@ def cgen_if2(expr, stmt):
     used_labels += 1
     top = disFp
     t1 = cgen_expr(expr)
-    if t1.type != 'bool':   ##TODO {sharifi} attribute
+    if t1.type != 'bool':  ##TODO {sharifi} attribute
         print("Error")
         exit(2)
     emit("lw $t0, " + t1.to_str())  ##TODO {sharifi} attribute
@@ -75,7 +75,7 @@ def cgen_while(node):
     used_labels += 2
     used_labels += 1
     t = cgen_expr(expr)
-    if t.type != 'bool':   ##TODO {sharifi} attribute
+    if t.type != 'bool':  ##TODO {sharifi} attribute
         print("Error!")
         exit(2)
     emit(l1 + ":")
@@ -165,10 +165,86 @@ def cgen_variable_decl(node_id):
     cgen_variable(variable_id)
 
 
-def cgen_expr(node_id):
-    return Node("", 0)
-    # TODO {seyed}
+def cgen_expr_add(node):
     pass
+
+
+def cgen_readline(node):
+    pass
+
+
+def cgen_readint(node):
+    pass
+
+
+def cgen_call(node):
+    pass
+
+
+def cgen_this(node):
+    pass
+
+
+def cgen_lvalue(node):
+    pass
+
+
+def cgen_constant(node):
+    pass
+
+
+def cgen_expr_not(node):
+    pass
+
+
+def cgen_expr_neg(node):
+    pass
+
+
+def cgen_expr_new(node):
+    pass
+
+
+def cgen_expr(node_id):
+    node = parseTree.nodes[node_id]
+
+
+    if len(node.child) == 1:
+        child = node.ref_child[0]
+
+        if child.data == 'expr':
+            cgen_expr(node.child[0])
+        elif child.data == 'readline':
+            cgen_readline(child)
+        elif child.data == 'readint':
+            cgen_readint(child)
+        elif child.data == 'call':
+            cgen_call(child)
+        elif child.data == 'this':
+            cgen_this(child)
+        elif child.data == 'lvalue':
+            cgen_lvalue(child)
+        elif child.data == 'constant':
+            cgen_constant(child)
+
+    elif len(node.child) == 2:
+        child = node.ref_child[0]
+
+        if child.data == 'not':
+            cgen_expr_not(node)
+        elif child.data == 'neg':
+            cgen_expr_neg(node)
+        elif child.data == 'not':
+            cgen_expr_new(node)
+
+    elif len(node.child) == 3:
+        mid_child = node.ref_child[1]
+
+
+
+    # TODO {seyed}
+    return Node("", 0)
+
 
 
 def cgen_if(if_id):
@@ -238,4 +314,3 @@ def cgen_break(node):
 
     emit("j " + parseTree.nodes[node].attribute["ex_label"])
     return
-

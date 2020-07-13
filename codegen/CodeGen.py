@@ -9,6 +9,13 @@ disFp = -4
 symbolTable = SymbolTable(False)
 
 
+def align_stack(top):
+    global disFp
+    if top != disFp:
+        emit("addi $sp, $sp, " + str(top - disFp))
+        disFp = top
+
+
 def create_label(num):
     arr = []
     while num != 0:
@@ -30,18 +37,19 @@ def cgen_if1(expr, stmt1, stmt2):
     used_labels += 2
     top = disFp
     t1 = cgen_expr(expr)
-    if t1.type != 'bool':  ##TODO {sharifi} In bayad bere attribute --> .attribute["type"]
+    if t1.attribute["type"] != 'bool':
         print("Error")
         exit(2)
-    emit("lw $t0, " + t1.to_str())  ##TODO {sharifi} attribute
-    emit("addi $sp, $sp, " + str(top - disFp))
+    t1.attribute["address"].load_address()
+    emit("lw $t0, 0($s0)")
+    align_stack(top)
     emit("beqz $t0, " + l1)
     cgen_stmt(stmt1)
-    emit("addi $sp, $sp, " + str(top - disFp))
+    align_stack(top)
     emit("j " + l2)
     emit(l1 + ":")
     cgen_stmt(stmt2)
-    emit("addi $sp, $sp, " + str(top - disFp))
+    align_stack(top)
     emit(l2 + ":")
     return
 
@@ -52,14 +60,15 @@ def cgen_if2(expr, stmt):
     used_labels += 1
     top = disFp
     t1 = cgen_expr(expr)
-    if t1.type != 'bool':  ##TODO {sharifi} attribute
+    if t1.attribute["type"] != 'bool':
         print("Error")
         exit(2)
-    emit("lw $t0, " + t1.to_str())  ##TODO {sharifi} attribute
-    emit("addi $sp, $sp, " + str(top - disFp))
+    t1.attribute["address"].load_address()
+    emit("lw $t0, 0($s0)")
+    align_stack(top)
     emit("beqz $t0, " + l1)
     cgen_stmt(stmt)
-    emit("addi $sp, $sp, " + str(top - disFp))
+    align_stack(top)
     emit(l1 + ":")
     return
 
@@ -71,19 +80,20 @@ def cgen_while(node):
     top = disFp
     l1 = create_label(used_labels)
     l2 = create_label(used_labels + 1)
-    parseTree.nodes[node].attribute = l2
+    parseTree.nodes[node].attribute["ex_label"] = l2
     used_labels += 2
     used_labels += 1
     t = cgen_expr(expr)
-    if t.type != 'bool':  ##TODO {sharifi} attribute
+    if t.attribute["type"] != 'bool':
         print("Error!")
         exit(2)
     emit(l1 + ":")
-    emit("lw $t0, " + t.to_str())  ##TODO {sharifi} attribute
-    emit("addi $sp, $sp, " + str(top - disFp))
+    t.attribute["address"].load_address()
+    emit("lw $t0, 0($s0)")
+    align_stack(top)
     emit("beqz $t0, " + l2)
     cgen_stmt(stmt)
-    emit("addi $sp, $sp, " + str(top - disFp))
+    align_stack(top)
     emit("j " + l1)
     emit(l2 + ":")
     return
@@ -100,26 +110,23 @@ def cgen_for(node):
     l1 = create_label(used_labels)
     l2 = create_label(used_labels + 1)
     parseTree.nodes[node].attribute["ex_label"] = l2
-    parseTree.nodes[node].attribute["st_label"] = l1
     used_labels += 2
     cgen_expr(expr1)
     if top != disFp:
         emit("addi $sp, $sp, " + str(top - disFp))
     emit(l1 + ":")
     t = cgen_expr(expr2)
-    if t.type != 'bool':
+    if t.attribute["type"] != 'bool':
         print("Error!")
         exit(2)
-    emit("lw $t0, " + t.to_str())  ##TODO {sharifi} attribute  
-    if top != disFp:
-        emit("addi $sp, $sp, " + str(top - disFp))
+    t.attribute["address"].load_address()
+    emit("lw $t0, 0($s0)")
+    align_stack(top)
     emit("beqz $t0, " + l2)
     cgen_stmt(stm)
-    if top != disFp:
-        emit("addi $sp, $sp, " + str(top - disFp))
+    align_stack(top)
     cgen_expr(expr3)
-    if top != disFp:
-        emit("addi $sp, $sp, " + str(top - disFp))
+    align_stack(top)
     emit("j " + l1)
     emit(l2 + ":")
     return

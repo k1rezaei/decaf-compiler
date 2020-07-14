@@ -368,7 +368,8 @@ def expr_add_sub(node, operation):
     right_child_address = right_child.attribute[AttName.address]
 
     if left_child_type != right_child.attribute[type] or left_child_type not in (Type.double, Type.int):
-        raise TypeError("in node: \n" + node.__repr__() + "\n exprs' types are not good for summation.")
+        raise TypeError(
+            "in node: \n" + node.__repr__() + "\n exprs' types are not good for " + operation + " operation.")
     elif left_child_type == Type.int:
         left_child_address.load()
         emit("move $s1, $s0")
@@ -383,23 +384,64 @@ def expr_add_sub(node, operation):
     address.store()
     return node
 
+
 def cgen_expr_add(node):
     return expr_add_sub(node, 'add')
+
 
 def cgen_expr_sub(node):
     return expr_add_sub(node, 'sub')
 
 
+def expr_mul_mod_div(node, operation):
+    # operation = 'div' or 'mod' or 'mul'
+    left_child = cgen_expr(node.child[0])
+    right_child = cgen_expr(node.child[2])
+    left_child_type = left_child.attribute[AttName.type]
+
+    expr_set_node_attributes(node, left_child_type)
+    address = node.attribute[AttName.address]
+
+    left_child_address = left_child.attribute[AttName.address]
+    right_child_address = right_child.attribute[AttName.address]
+
+    if left_child_type != right_child.attribute[type] or left_child_type not in (Type.double, Type.int) or (
+            operation == 'mod' and left_child_type != Type.int):
+        raise TypeError(
+            "in node: \n" + node.__repr__() + "\n exprs' types are not good for " + operation + " operation.")
+    elif left_child_type == Type.int:
+        left_child_address.load()
+        emit("move $s1, $s0")
+        right_child_address.load()
+        if operation == 'mul':
+            emit("mult $s0, $s1")
+        else:
+            emit("div $s0, $s1")
+
+        if operation == 'mod':
+            emit("mfhi $s0")
+        else:
+            emit("mflo $s0")
+    elif left_child_type == Type.double:
+        left_child_address.load()
+        emit("mov.d $f2, $f0")
+        right_child_address.load()
+        emit(operation + ".d $f0, $f0, $f2")
+
+    address.store()
+    return node
+
+
 def cgen_expr_mul(node):
-    pass
+    return expr_mul_mod_div(node, 'mul')
 
 
 def cgen_expr_div(node):
-    pass
+    return expr_mul_mod_div(node, 'div')
 
 
 def cgen_expr_mod(node):
-    pass
+    return expr_mul_mod_div(node, 'mod')
 
 
 def cgen_expr(node_id):

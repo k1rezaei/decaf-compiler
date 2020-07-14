@@ -37,7 +37,7 @@ def cgen_if1(expr, stmt1, stmt2):
     used_labels += 2
     top = disFp
     t1 = cgen_expr(expr)
-    if t1.attribute["type"] != 'bool':
+    if t1.attribute["type"] != "bool":
         print("Error")
         exit(2)
     t1.attribute["address"].load_address()
@@ -183,7 +183,14 @@ def cgen_readline(node):
 
 
 def cgen_readint(node):
-    pass
+    global disFp
+    disFp -= 4
+    emit("li $v0, 5")
+    emit("syscall")
+    emit("sw $v0, " + str(disFp) + "($fp)")
+    emit("addi $s0, $fp, " + str(disFp))
+    node.attribute["type"] = "integer"
+    return
 
 
 def cgen_call(node):
@@ -344,7 +351,7 @@ def cgen_if(if_id):
         cgen_if2(node.child[0], node.child[1])
     elif length == 3:
         cgen_if1(node.child[0], node.child[1], node.child[2])
-    # TODO {sharifi} mage bazam halat dare?
+    # TODO {sharifi} mage bazam halat dare? : bara mohkam kariye
 
 
 def cgen_print_stmt(print_id):
@@ -414,9 +421,7 @@ def cgen_stmt_block(node_id):
         else:
             cgen_stmt(child_node)
 
-    if top != disFp:
-        emit("addi $sp, $sp, " + str(top - disFp))
-        disFp = top
+    align_stack(top)
 
     symbolTable.remove_scope()
 
@@ -430,7 +435,7 @@ def cgen_break(node):
         parent = parseTree.nodes[parent].parent
 
     if parent is None:
-        print("Erro!")
+        print("Error!")
         exit(2)
 
     emit("j " + parseTree.nodes[node].attribute["ex_label"])

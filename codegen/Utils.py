@@ -18,6 +18,13 @@ class Address:
     def __init__(self, addr, mode):
         self.addr = addr
         self.mode = mode
+        self.is_double = False
+
+    def __init__(self, addr, mode, is_double):
+        self.addr = addr
+        self.mode = mode
+        self.is_double = is_double
+
 
     def load_address(self):
         if self.mode == 0:
@@ -31,20 +38,28 @@ class Address:
         return
 
     def load(self):
-        if self.mode == 0:
-            emit("lw $s0, " + self.to_str())
+        if self.is_double:
+            self.load_double()
+        else:
+            if self.mode == 0:
+                emit("lw $s0, " + self.to_str())
 
     def load_double(self):
         if self.mode == 0:
-            emit("ldc1 $s0, " + self.to_str())
+            emit("ld $s0, " + self.to_str())
+            emit("mtc1.d $s0, $f0")
 
     def store(self):
-        if self.mode == 0:
-            emit("sw $s0, " + self.to_str())
+        if self.is_double:
+            self.store_double()
+        else:
+            if self.mode == 0:
+                emit("sw $s0, " + self.to_str())
 
     def store_double(self):
         if self.mode == 0:
-            emit("sdc1 $s0, " + self.to_str())
+            emit("mfc1.d $s0, $f0")
+            emit("sd $s0, " + self.to_str())
 
     def to_str(self):
         if self.mode == 0:

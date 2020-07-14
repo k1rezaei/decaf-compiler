@@ -1,6 +1,7 @@
 from codegen.Error import error
 from codegen.CodeGen import emit
 
+
 class Variable:
     def __init__(self, name, type, address):
         self.name = name
@@ -28,6 +29,22 @@ class Address:
             emit("lw $s0, 0($s0)")
             emit("addi $s0, $s0, " + str(self.addr[1]))
         return
+
+    def load(self):
+        if self.mode == 0:
+            emit("lw $s0, " + self.to_str())
+
+    def load_double(self):
+        if self.mode == 0:
+            emit("ldc1 $s0, " + self.to_str())
+
+    def store(self):
+        if self.mode == 0:
+            emit("sw $s0, " + self.to_str())
+
+    def store_double(self):
+        if self.mode == 0:
+            emit("sdc1 $s0, " + self.to_str())
 
     def to_str(self):
         if self.mode == 0:
@@ -151,9 +168,15 @@ class SymbolTable:
                 return False
         return True
 
+
 class Type:
     double = "double"
     int = "int"
     bool = "bool"
     string = "string"
     array = "array"
+
+
+class AttName:
+    type = "type"
+    address = "address"

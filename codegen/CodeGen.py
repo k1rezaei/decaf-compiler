@@ -1,5 +1,5 @@
 from codegen.grammar import parseTree
-from codegen.Utils import Variable, Address, SymbolTable
+from codegen.Utils import Variable, Address, SymbolTable, Type, AttName
 from codegen.parsetree import Node
 from codegen.Error import error
 
@@ -203,10 +203,25 @@ def cgen_constant(node):
 
 
 def cgen_expr_not(node):
-    pass
+    child = cgen_expr(node.child[1])
+
+    if child.attribute[AttName.type] != Type.bool:
+        raise TypeError("in node: \n" + node.__repr__() + "\n expr's type is not bool.")
+
+    child_address = child.attribute[AttName.address]
+    child_address.load()
+
+    emit("addi $t0, $zero, 1")
+    emit("sub $s0, $t0, $s0")
+
+    child_address.store()
+
+    return child
+
 
 
 def cgen_expr_neg(node):
+
     pass
 
 

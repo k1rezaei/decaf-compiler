@@ -4,7 +4,7 @@ from codegen.parsetree import Node
 from codegen.Error import error
 
 used_labels = 1
-disFp = -4
+disFp = -4  ### always we have $sp = $fp + disFp.
 
 symbolTable = SymbolTable(False)
 
@@ -112,8 +112,7 @@ def cgen_for(node):
     parseTree.nodes[node].attribute["ex_label"] = l2
     used_labels += 2
     cgen_expr(expr1)
-    if top != disFp:
-        emit("addi $sp, $sp, " + str(top - disFp))
+    align_stack(top)
     emit(l1 + ":")
     t = cgen_expr(expr2)
     if t.attribute["type"] != 'bool':
@@ -152,24 +151,27 @@ def get_name(ident_id):
 
 
 def cgen_variable(variable_id):
-    global disFp, symbolTable
     node = parseTree.node[variable_id]
     type_id = node.child[0]
     ident_id = node.child[1]
     type = get_type(type_id)
     name = get_name(ident_id)
-    symbolTable.add_variable(type, name)
-    if type == "double":
-        disFp -= 4
-    else:
-        disFp -= 8
-    return
+    return name, type
 
 
 def cgen_variable_decl(node_id):
+    global disFp, symbolTable
     node = parseTree.nodes[node_id]
     variable_id = node.child[0]
-    cgen_variable(variable_id)
+    name, type = cgen_variable(variable_id)
+    symbolTable.add_variable(type, name)
+    if type == "double":
+        disFp -= 8
+        emit("addi $sp, $sp, -8")
+    else:
+        disFp -= 4
+        emit("addi $sp, $sp, -4")
+    return
 
 
 def cgen_expr_add(node):
@@ -359,6 +361,10 @@ def cgen_print_stmt(print_id):
             emit("l.d $f12, 0($s0)")
             emit("li $v0, 3")
             emit("syscall")
+        elif type is "string":  ## TODO {keivan} is it correct? :>
+            emit("lw $a0, 0($s0)")
+            emit("li $v0, 4")
+            emit("syscall")
         else:
             emit("lw $a0, 0($s0)")
             emit("li $v0, 1")
@@ -388,6 +394,8 @@ def cgen_stmt(node_id):
         cgen_break(child_id)
     elif child.data is "printstmt":
         cgen_print_stmt(child_id)
+
+
 # TODO cgen_return_stmt
 
 

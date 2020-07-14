@@ -226,8 +226,61 @@ def cgen_lvalue(node):
     pass
 
 
-def cgen_constant(node):
+def cgen_constant_int(node):
+    expr_set_node_attributes(node, Type.bool)
+    child = node.ref_child[0]
+
+    value = child.data
+    if node.data == 'integer':
+        value = int(value, 10)
+    else:
+        value = int(value, 16)
+
+    emit('lui $s0, ' + str(value // (2 ** 16)))
+    emit('addiu $s0, $s0, ' + str(value % (2 ** 16)))
+
+    node.attribute[AttName.address].store()
+    return node
+
+
+def cgen_constant_double(node):
     pass
+
+
+def cgen_constant_bool(node):
+    expr_set_node_attributes(node, Type.bool)
+    child = node.ref_child[0]
+
+    if child.data == 'true':
+        emit("li $s0, 1")
+    elif child.data == 'false':
+        emit("li $s0, 0")
+
+    node.attribute[AttName.address].store()
+    return node
+
+
+def cgen_constant_string(node):
+    pass
+
+
+def cgen_constant_null(node):
+    pass
+
+
+def cgen_constant(node):
+    child = node.ref_child[0]
+
+    if child.data == 'intconstant':
+        return cgen_constant_int(child.ref_child[0])
+    elif child.data == 'doubleconstant':
+        return cgen_constant_double(child)
+    elif child.data == 'boolconstant':
+        return cgen_constant_bool(child)
+    elif child.data == 'stringconstant':
+        return cgen_constant_string(child)
+    elif child.data == 'null':
+        return cgen_constant_null(child)
 
 
 def cgen_expr_not(node):

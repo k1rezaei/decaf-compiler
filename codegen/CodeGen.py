@@ -10,6 +10,30 @@ disFp = -4  ### always we have $sp = $fp + disFp.
 symbolTable = SymbolTable(False)
 
 
+def emit_jump(label):
+    emit("j " + label)
+
+
+def emit_label(label):
+    emit(label + " :")
+
+
+def emit_load(dst, src, offset=0):
+    emit("lw " + dst + ", " + str(offset) + "(" + src + ")")
+
+
+def emit_load_double(dst, src, offset=0):
+    emit("l.d " + dst + ", " + str(offset) + "(" + src + ")")
+
+
+def emit_li(dst, val):
+    emit("li " + dst + ", " + str(val))
+
+
+def emit_syscall():
+    emit("syscall")
+
+
 def align_stack(top):
     global disFp
     if top != disFp:
@@ -38,7 +62,7 @@ def cgen_if1(expr, stmt1, stmt2):
     used_labels += 2
     top = disFp
     t1 = cgen_expr(expr)
-    if t1.attribute["type"] != 'bool':
+    if t1.attribute["type"] != "bool":
         print("Error")
         exit(2)
     t1.attribute["address"].load_address()
@@ -180,7 +204,14 @@ def cgen_readline(node):
 
 
 def cgen_readint(node):
-    pass
+    global disFp
+    disFp -= 4
+    emit("li $v0, 5")
+    emit("syscall")
+    emit("sw $v0, " + str(disFp) + "($fp)")
+    emit("addi $s0, $fp, " + str(disFp))
+    node.attribute["type"] = "integer"
+    return
 
 
 def cgen_call(node):
@@ -524,7 +555,7 @@ def cgen_if(if_id):
         cgen_if2(node.child[0], node.child[1])
     elif length == 3:
         cgen_if1(node.child[0], node.child[1], node.child[2])
-    # TODO {sharifi} mage bazam halat dare?
+    # TODO {sharifi} mage bazam halat dare? : bara mohkam kariye
 
 
 def cgen_print_stmt(print_id):
@@ -538,17 +569,17 @@ def cgen_print_stmt(print_id):
         type = expr.attribute["type"]
         address.load_address()
         if type is "double":
-            emit("l.d $f12, 0($s0)")
-            emit("li $v0, 3")
-            emit("syscall")
+            emit_load_double("$f12", "$s0")
+            emit_li("$v0", 3)
+            emit_syscall()
         elif type is "string":  ## TODO {keivan} is it correct? :>
-            emit("lw $a0, 0($s0)")
-            emit("li $v0, 4")
-            emit("syscall")
+            emit_load("$a0", "$s0")
+            emit_li("$v0", 4)
+            emit_syscall()
         else:
-            emit("lw $a0, 0($s0)")
-            emit("li $v0, 1")
-            emit("syscall")
+            emit_load("$a0", "$s0")
+            emit_li("$v0", 1)
+            emit_syscall()
 
         align_stack(top)
 
@@ -594,9 +625,7 @@ def cgen_stmt_block(node_id):
         else:
             cgen_stmt(child_node)
 
-    if top != disFp:
-        emit("addi $sp, $sp, " + str(top - disFp))
-        disFp = top
+    align_stack(top)
 
     symbolTable.remove_scope()
 
@@ -610,7 +639,7 @@ def cgen_break(node):
         parent = parseTree.nodes[parent].parent
 
     if parent is None:
-        print("Erro!")
+        print("Error!")
         exit(2)
 
     emit("j " + parseTree.nodes[node].attribute["ex_label"])

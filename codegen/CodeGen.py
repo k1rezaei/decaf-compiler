@@ -174,10 +174,6 @@ def cgen_variable_decl(node_id):
     return
 
 
-def cgen_expr_add(node):
-    pass
-
-
 def cgen_readline(node):
     pass
 
@@ -211,7 +207,7 @@ def cgen_expr_not(node):
     child_address = child.attribute[AttName.address]
     child_address.load()
 
-    emit("addi $t0, $zero, 1")
+    emit("li $t0, 1")
     emit("sub $s0, $t0, $s0")
 
     child_address.store()
@@ -219,10 +215,21 @@ def cgen_expr_not(node):
     return child
 
 
-
 def cgen_expr_neg(node):
+    child = cgen_expr(node.child[1])
+    child_type = child.attribute[AttName.type]
+    child_address = child.attribute[AttName.address]
+    child_address.load()
 
-    pass
+    if child_type == Type.int:
+        emit("sub $s0, $zero, $s0")
+    elif child_type == Type.double:
+        emit("neg.d $f0, $f0")
+    else:
+        raise TypeError("in node: \n" + node.__repr__() + "\n expr's type is not int or double.")
+
+    child_address.store()
+    return child
 
 
 def cgen_expr_new(node):
@@ -237,16 +244,91 @@ def cgen_expr_assign(node):
     pass
 
 
+def expr_set_node_attributes(node, type):
+    emit("addi $sp, -4")
+    disFp -= 4
+
+    node.attribute[AttName.address] = Address(disFp, 0)
+    node.attribute[AttName.type] = type
+
+
+def expr_or_and(node, operation):
+    # operation = 'and' or 'or'
+    expr_set_node_attributes(node, Type.bool)
+    address = node.attribute[AttName.address]
+
+    left_child = cgen_expr(node.child[0])
+    right_child = cgen_expr(node.child[2])
+
+    if left_child.attribute[AttName.type] != Type.bool or right_child.attribute[AttName.type] != Type.bool:
+        raise TypeError("in node: \n" + node.__repr__() + "\n one of exprs' type is not bool.")
+
+    left_child_address = left_child.attribute[AttName.address]
+    right_child_address = right_child.attribute[AttName.address]
+
+    left_child_address.load()
+    emit("move $s1, $s0")
+    right_child_address.load()
+    emit(operation + " $s0, $s0, $s1")
+    address.store()
+
+    return node
+
+
 def cgen_expr_bitor(node):
-    pass
+    return expr_or_and(node, 'or')
 
 
 def cgen_expr_bitand(node):
-    pass
+    return expr_or_and(node, 'and')
 
 
 def cgen_expr_equal(node):
-    pass
+    expr_set_node_attributes(node, Type.bool)
+    address = node.attribute[AttName.address]
+
+    left_child = cgen_expr(node.child[0])
+    right_child = cgen_expr(node.child[2])
+
+    left_child_address = left_child.attribute[AttName.address]
+    right_child_address = right_child.attribute[AttName.address]
+
+    if left_child.attribute[AttName.type] == Type.double:
+        left_child_address.load()
+        emit("mov.d $f2, $f0")
+        right_child_address.load()
+        emit("c.eq.d $f0, $f2")
+        # TODO chejoori mishe be flagesh dastresi dasht :-?
+    elif left_child.attribute[AttName.type] in (Type.array, Type.string):
+        pass
+        # TODO :((
+    else:
+        left_child_address.load()
+        emit("move $s1, $s0")
+        right_child_address.load()
+        emit("and $t0, $s0, $s1")
+
+        emit("slt $t1, $t0, $zero")
+        emit("slt $t0, $zero, $t0")
+        emit("or $t0, $t0, $t1")
+
+        emit("li $t1, 1")
+        emit("sub $s0, $t1, $t0")
+        emit("")
+
+    address.store()
+    return node
+
+
+def cgen_expr_nequal(node):
+    node = cgen_expr_equal(node)
+    address = node.attribute[AttName.address]
+
+    address.load()
+    emit("li $t0, 1")
+    emit("sub $t0, $s0")
+    address.store()
+    return node
 
 
 def cgen_expr_grq(node):
@@ -262,6 +344,10 @@ def cgen_expr_le(node):
 
 
 def cgen_expr_leq(node):
+    pass
+
+
+def cgen_expr_add(node):
     pass
 
 
@@ -309,7 +395,7 @@ def cgen_expr(node_id):
             return cgen_expr_not(node)
         elif child.data == 'neg':
             return cgen_expr_neg(node)
-        elif child.data == 'not':
+        elif child.data == 'new':
             return cgen_expr_new(node)
 
     elif len(node.child) == 3:
@@ -323,6 +409,8 @@ def cgen_expr(node_id):
             return cgen_expr_bitand(node)
         elif mid_child.data == 'equal':
             return cgen_expr_equal(node)
+        elif mid_child.data == 'nequal':
+            return cgen_expr_nequal(node)
         elif mid_child.data == 'grq':
             return cgen_expr_grq(node)
         elif mid_child.data == 'gr':

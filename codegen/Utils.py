@@ -150,3 +150,10 @@ class SymbolTable:
             if variable.name == name:
                 return False
         return True
+
+class Type:
+    double = "double"
+    int = "int"
+    bool = "bool"
+    string = "string"
+    array = "array"

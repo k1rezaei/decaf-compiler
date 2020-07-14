@@ -9,6 +9,30 @@ disFp = -4  ### always we have $sp = $fp + disFp.
 symbolTable = SymbolTable(False)
 
 
+def emit_jump(label):
+    emit("j " + label)
+
+
+def emit_label(label):
+    emit(label + " :")
+
+
+def emit_load(dst, src, offset=0):
+    emit("lw " + dst + ", " + str(offset) + "(" + src + ")")
+
+
+def emit_load_double(dst, src, offset=0):
+    emit("l.d " + dst + ", " + str(offset) + "(" + src + ")")
+
+
+def emit_li(dst, val):
+    emit("li " + dst + ", " + str(val))
+
+
+def emit_syscall():
+    emit("syscall")
+
+
 def align_stack(top):
     global disFp
     if top != disFp:

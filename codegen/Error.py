@@ -2,3 +2,7 @@
 def error(message):
     print(message)
     exit(0)
+
+class TypeError(Exception):
+    def __init__(self, message):
+        self.message = message

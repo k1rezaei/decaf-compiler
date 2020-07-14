@@ -389,17 +389,17 @@ def cgen_print_stmt(print_id):
         type = expr.attribute["type"]
         address.load_address()
         if type is "double":
-            emit("l.d $f12, 0($s0)")
-            emit("li $v0, 3")
-            emit("syscall")
+            emit_load_double("$f12", "$s0")
+            emit_li("$v0", 3)
+            emit_syscall()
         elif type is "string":  ## TODO {keivan} is it correct? :>
-            emit("lw $a0, 0($s0)")
-            emit("li $v0, 4")
-            emit("syscall")
+            emit_load("$a0", "$s0")
+            emit_li("$v0", 4)
+            emit_syscall()
         else:
-            emit("lw $a0, 0($s0)")
-            emit("li $v0, 1")
-            emit("syscall")
+            emit_load("$a0", "$s0")
+            emit_li("$v0", 1)
+            emit_syscall()
 
         align_stack(top)
 

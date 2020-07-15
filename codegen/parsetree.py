@@ -2,15 +2,15 @@ from lark import Tree
 
 
 def data_transform(data):
-    # TODO ye ident be esme exprbaghali masalan biad inja kharab nemishe ?!?!?
-    if str.startswith(data, "expr"):
+    expr = ["expr", "expr1", "expr2", "expr3", "expr4", "expr5", "expr6", "expr7", "expr8"]
+    if data in expr:
         return "expr"
-    if str.startswith(data, "forstmt"):
+    if data == "forstmtopen" or data == "forstmtclose":
         return "forstmt"
-    if str.startswith(data, "whilestmt"):
+    if data == "whilestmtopen" or data == "whilestmtclose":
         return "whilestmt"
-    if str.startswith(data, "forstmt"):
-        return "forstmt"
+    if data == "ifstmtclose" or data == "ifstmtopen":
+        return "ifstmt"
     if data == "closestmt" or data == "openstmt":
         return "stmt"
     return data

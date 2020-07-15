@@ -25,7 +25,6 @@ class Address:
         self.mode = mode
         self.is_double = is_double
 
-
     def load_address(self):
         if self.mode == 0:
             emit("addi $s0, $fp, " + str(self.addr))

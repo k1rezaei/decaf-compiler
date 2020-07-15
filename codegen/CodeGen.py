@@ -34,6 +34,19 @@ def emit_syscall():
     emit("syscall")
 
 
+data_section = '.data\n'
+
+
+def emit_data(label, input):
+    global data_section
+    data_section += label + ':\n' + input + '\n'
+
+
+def print_data_section():
+    global data_section
+    print(data_section)
+
+
 def align_stack(top):
     global disFp
     if top != disFp:

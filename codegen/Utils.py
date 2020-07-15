@@ -189,6 +189,7 @@ class Type:
     bool = "bool"
     string = "string"
     array = "array"
+    null = "null"
 
 
 class AttName:

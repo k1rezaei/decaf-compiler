@@ -34,12 +34,16 @@ def emit_syscall():
     emit("syscall")
 
 
-data_section = '.data\n'
+data_section = '''.data
+null:
+    .space 8
+
+'''
 
 
 def emit_data(label, input):
     global data_section
-    data_section += label + ':\n' + input + '\n'
+    data_section += '    ' + label + ':\n' + input + '\n'
 
 
 def print_data_section():
@@ -268,7 +272,7 @@ def cgen_lvalue(node):
 
 
 def cgen_constant_int(node):
-    expr_set_node_attributes(node, Type.bool)
+    expr_set_node_attributes(node, Type.int)
     child = node.ref_child[0]
 
     value = child.data
@@ -285,7 +289,18 @@ def cgen_constant_int(node):
 
 
 def cgen_constant_double(node):
-    pass
+    expr_set_node_attributes(node, Type.double)
+    child = node.ref_child[0]
+
+    value = child.data
+    label = create_label()
+    emit_data(label, '.double ' + value)
+
+    emit('la $t0, ' + label)
+    emit_load_double('$f0', '$t0')
+
+    node.attribute[AttName.address].store()
+    return node
 
 
 def cgen_constant_bool(node):
@@ -302,11 +317,26 @@ def cgen_constant_bool(node):
 
 
 def cgen_constant_string(node):
-    pass
+    expr_set_node_attributes(node, Type.string)
+    child = node.ref_child[0]
+
+    value = child.data
+    label = create_label()
+    emit_data(label, '.asciiz ' + value)
+    emit_data(create_label(), '.space ' + str(8 - (len(value) - 2) % 8))
+
+    emit('la $s0, ' + label)
+    node.attribute[AttName.address].store()
+    return node
 
 
 def cgen_constant_null(node):
-    pass
+    expr_set_node_attributes(node, Type.null)
+
+    emit("la $s0, null")
+
+    node.attribute[AttName.address].store()
+    return node
 
 
 def cgen_constant(node):

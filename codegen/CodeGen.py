@@ -41,13 +41,16 @@ def align_stack(top):
         disFp = top
 
 
-def create_label(num):
+def create_label():
+    global used_labels
+    num = used_labels
     arr = []
     while num != 0:
         s = num % 27
         num //= 27
         arr.append(chr(s + ord('A')))
     arr.append("_")
+    used_labels += 1
     return "".join(arr)[::-1]
 
 
@@ -56,10 +59,9 @@ def emit(st):
 
 
 def cgen_if1(expr, stmt1, stmt2):
-    global used_labels, disFp
-    l1 = create_label(used_labels)
-    l2 = create_label(used_labels + 1)
-    used_labels += 2
+    global disFp
+    l1 = create_label()
+    l2 = create_label()
     top = disFp
     t1 = cgen_expr(expr)
     if t1.attribute["type"] != "bool":
@@ -80,9 +82,8 @@ def cgen_if1(expr, stmt1, stmt2):
 
 
 def cgen_if2(expr, stmt):
-    global used_labels, disFp
-    l1 = create_label(used_labels)
-    used_labels += 1
+    global disFp
+    l1 = create_label()
     top = disFp
     t1 = cgen_expr(expr)
     if t1.attribute["type"] != 'bool':
@@ -99,15 +100,13 @@ def cgen_if2(expr, stmt):
 
 
 def cgen_while(node):
-    global used_labels, disFp
+    global disFp
     expr = parseTree.nodes[node].child[0]
     stmt = parseTree.nodes[node].child[1]
     top = disFp
-    l1 = create_label(used_labels)
-    l2 = create_label(used_labels + 1)
+    l1 = create_label()
+    l2 = create_label()
     parseTree.nodes[node].attribute["ex_label"] = l2
-    used_labels += 2
-    used_labels += 1
     t = cgen_expr(expr)
     if t.attribute["type"] != 'bool':
         print("Error!")
@@ -130,12 +129,11 @@ def cgen_for(node):
     expr2 = nod.child[1]
     expr3 = nod.child[2]
     stm = nod.child[3]
-    global used_labels, disFp
+    global disFp
     top = disFp
-    l1 = create_label(used_labels)
-    l2 = create_label(used_labels + 1)
+    l1 = create_label()
+    l2 = create_label()
     parseTree.nodes[node].attribute["ex_label"] = l2
-    used_labels += 2
     cgen_expr(expr1)
     align_stack(top)
     emit(l1 + ":")
@@ -199,8 +197,38 @@ def cgen_variable_decl(node_id):
     return
 
 
-def cgen_readline(node):
-    pass
+def cgen_readline(node):  # after calling this function address of the string is in $S0
+    emit("addi $s3, $sp, 0")  # $s3 saves top of stack
+    emit_li("$v0", 8)
+    emit_li("$a1", 1)  # length of read (1 byte)
+    emit_li("$s1", ord("\n"))
+    l1 = create_label()
+    l2 = create_label()
+    emit_label(l1)
+    emit("addi $sp, $sp, -1")
+    emit("addi $a0, $sp, 0")
+    emit_syscall()  # read one char and store in top of stack
+    emit("lbu $s0, 0($sp)")
+    emit("bneq $s0, $s1, " + l1)  # check the end of line
+    emit("sub $a0, $s3, $sp")
+    emit("addi $a0, $a0, 1")  # amount ot get memory
+    emit_li("$v0", 9)
+    emit_syscall()  # first of allocated memory is in $v0
+    emit("addi $v1, $v0, 0")  # store address of string in v1 (don't change this reg!)
+    emit("addi $a0, $a0, -1")
+    emit("addi $sp, $s3, -1")
+    emit_label(l2)
+    emit("lbu $s0, 0($sp)")
+    emit("sb $s0, 0($v0)")
+    emit("addi $v0, $v0, 1")
+    emit("addi $sp, $sp, -1")
+    emit("addi $a0, $a0, -1")
+    emit("bnez $a0, l2")  # check that all characters have benn writen
+    # TODO : store a zero character at "0($v0)". I don't know how to do it.
+    emit("addi $s0, $v1, 0")
+    emit("addi $sp, $s3, 0")
+    node.attribute["type"] = "string"
+    return node
 
 
 def cgen_readint(node):
@@ -211,7 +239,7 @@ def cgen_readint(node):
     emit("sw $v0, " + str(disFp) + "($fp)")
     emit("addi $s0, $fp, " + str(disFp))
     node.attribute["type"] = "integer"
-    return
+    return node
 
 
 def cgen_call(node):

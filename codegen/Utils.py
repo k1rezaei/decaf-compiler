@@ -15,12 +15,7 @@ class Variable:
 # mode = 1 -> global address
 # mode = 2 -> field of an object = (address of obj from pointer, address of field in object)
 class Address:
-    def __init__(self, addr, mode):
-        self.addr = addr
-        self.mode = mode
-        self.is_double = False
-
-    def __init__(self, addr, mode, is_double):
+    def __init__(self, addr, mode, is_double=False):
         self.addr = addr
         self.mode = mode
         self.is_double = is_double
@@ -36,26 +31,26 @@ class Address:
             CG.emit("addi $s0, $s0, " + str(self.addr[1]))
         return
 
-    def load(self):
+    def load(self):  # TODO {seyed} ino ba oon load addr bezan
         if self.is_double:
             self.load_double()
         else:
             if self.mode == 0:
                 CG.emit("lw $s0, " + self.to_str())
 
-    def load_double(self):
+    def load_double(self):  # TODO {seyed} ino ba oon load addr bezan
         if self.mode == 0:
             CG.emit("ld $s0, " + self.to_str())
             CG.emit("mtc1.d $s0, $f0")
 
-    def store(self):
+    def store(self):  # TODO {seyed} ino ba oon load addr bezan
         if self.is_double:
             self.store_double()
         else:
             if self.mode == 0:
                 CG.emit("sw $s0, " + self.to_str())
 
-    def store_double(self):
+    def store_double(self):  # TODO {seyed} ino ba oon load addr bezan
         if self.mode == 0:
             CG.emit("mfc1.d $s0, $f0")
             CG.emit("sd $s0, " + self.to_str())
@@ -81,6 +76,7 @@ class SymbolTable:
         ### agar for/while hast "loop". (due to break)
 
     ### vagarna khaali (Nadid)
+    # TODO {seyed} chera age az stack pop nakonim kharab mishe?!?!
     def add_scope(self, type=""):
         self.scopes.append((len(self.variables), type))
 
@@ -196,3 +192,5 @@ class AttName:
     type = "type"
     address = "address"
     exit_label = "ex_label"  # this is for break statement
+    array_member_type = "arr_member_type"
+    array_dim = "arr_dim"

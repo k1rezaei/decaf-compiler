@@ -4,6 +4,18 @@ from codegen.Utils import Address, Type, AttName
 from codegen.parsetree import Node
 
 
+def expr_set_node_attributes(node, type):
+    CG.emit("addi $sp, -4")
+    CG.disFp -= 4
+
+    if type == Type.double:
+        CG.emit("addi $sp, -4")
+        CG.disFp -= 4
+
+    node.attribute[AttName.address] = Address(CG.disFp, 0)
+    node.attribute[AttName.type] = type
+
+
 def cgen_call(node):
     pass
 
@@ -26,11 +38,15 @@ def cgen_constant_int(node):
     else:
         value = int(value, 16)
 
-    CG.emit('lui $s0, ' + str(value // (2 ** 16)))
-    CG.emit('addiu $s0, $s0, ' + str(value % (2 ** 16)))
+    emit_32li('$s0', value)
 
     node.attribute[AttName.address].store()
     return node
+
+
+def emit_32li(dst, value):
+    CG.emit('lui ' + dst + ', ' + str(value // (2 ** 16)))
+    CG.emit('addiu ' + dst + ', ' + dst + ', ' + str(value % (2 ** 16)))
 
 
 def cgen_constant_double(node):
@@ -67,7 +83,7 @@ def cgen_constant_string(node):
 
     value = child.data
     label = CG.create_label()
-    CG.emit_data(label, '.asciiz ' + value)
+    CG.emit_data(label, '.asciiz ' + value)  # TODO avvalesh sizesho mizare?!?!
     CG.emit_data(CG.create_label(), '.space ' + str(8 - (len(value) - 2) % 8))
 
     CG.emit('la $s0, ' + label)
@@ -137,24 +153,50 @@ def cgen_expr_new(node):
     pass
 
 
-def cgen_newarray(node):
-    pass
+def expr_type(node):
+    type_pri = node.ref_child[0]
+
+    if type_pri.data != 'ident':
+        return type_pri.data, len(node.ref_child) - 1
+
+    return type_pri.ref_child[0].data, len(node.ref_child) - 1
+
+
+def cgen_new_array(node):
+    # TODO kollan moghe memory allocate kardan bayad havasemoon bashe %8=0 bashe ke mogheyi ke double migirim ok bashe?
+    expr_set_node_attributes(node, Type.array)
+
+    len_expr = cgen_expr(node.ref_child[1])
+    (member_type, dimension) = expr_type(node.ref_child[2])
+
+    if len_expr.attribute[AttName.type] != Type.int:
+        raise TypeError("in node: \n" + node.__repr__() + "\n length of new_array isn't int.")
+
+    len_expr_address = len_expr.attribute[AttName.address]
+    len_expr_address.load()
+
+    if member_type == Type.double:
+        CG.emit_li('$t0', '8')
+    else:
+        CG.emit_li('$t0', '4')
+
+    CG.emit_addi('$s0', '$s0', '1')
+    # man farz kardam ke double age bashe avvalesh 8 byte bara toole arraye oke?
+    # akhe goftam shayad double bayad faghat az address haye zoj bashe!
+    CG.emit('mult $s0, $t0')
+    CG.emit('mflo $a0')
+    CG.emit_li('$v0', 9)
+    CG.emit_syscall()
+
+    CG.emit('sw $s0, 0($v0)')  # Set length
+
+    CG.emit_move('$s0', '$v0')
+    node.attribute[AttName.address].store()
+    return node
 
 
 def cgen_expr_assign(node):
     pass
-
-
-def expr_set_node_attributes(node, type):
-    CG.emit("addi $sp, -4")
-    CG.disFp -= 4
-
-    if type == Type.double:
-        CG.emit("addi $sp, -4")
-        CG.disFp -= 4
-
-    node.attribute[AttName.address] = Address(CG.disFp, 0)
-    node.attribute[AttName.type] = type
 
 
 def expr_or_and(node, operation):
@@ -409,6 +451,6 @@ def cgen_expr(node):
             if left_child.data == 'parop':
                 return cgen_expr(node.ref_child[1])
             elif left_child.data == 'newarray':
-                return cgen_newarray(node)
+                return cgen_new_array(node)
 
     return Node("", 0, None)

@@ -14,6 +14,7 @@ class Variable:
 # mode = 0 -> address from frame pointer
 # mode = 1 -> global address
 # mode = 2 -> field of an object = (address of obj from pointer, address of field in object)
+# mode = 3 -> member of an array = (address of array in stack: int, address of index: Address)
 class Address:
     def __init__(self, addr, mode, is_double=False):
         self.addr = addr
@@ -25,10 +26,23 @@ class Address:
             CG.emit("addi $s0, $fp, " + str(self.addr))
         elif self.mode == 1:
             CG.emit("li $s0," + str(self.addr))
-        else:
+        elif self.mode == 2:
             CG.emit("addi $s0, $fp, " + str(self.addr[0]))
             CG.emit("lw $s0, 0($s0)")
             CG.emit("addi $s0, $s0, " + str(self.addr[1]))
+        else:
+            self.addr[1].load()
+            CG.emit_addi('$s0', '$s0', '1')
+            if self.is_double:
+                CG.emit_li('$t6', 8)
+            else:
+                CG.emit_li('$t6', 4)
+            CG.emit('mult $s0, $t6')
+            CG.emit('mflo $t6')
+
+            CG.emit("addi $s0, $fp, " + str(self.addr[0]))
+            CG.emit("lw $s0, 0($s0)")
+            CG.emit("addi $s0, $s0, $t6")
         return
 
     def load(self):

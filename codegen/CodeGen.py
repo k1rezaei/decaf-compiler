@@ -8,6 +8,14 @@ disFp = -4  ### always we have $sp = $fp + disFp.
 symbolTable = SymbolTable(False)
 
 
+def emit_addi(v1, v2, v3):
+    emit("addi " + v1 + ", " + v2 + ", " + v3)
+
+
+def emit_move(dst, src):
+    emit("move " + dst + ", " + src)
+
+
 def emit_jump(label):
     emit("j " + label)
 
@@ -79,20 +87,21 @@ def cgen_if1(expr, stmt1, stmt2):
     l2 = create_label()
     top = disFp
     t1 = cgen_expr(expr)
-    if t1.attribute["type"] != "bool":
-        print("Error")
-        exit(2)
-    t1.attribute["address"].load_address()
-    emit("lw $t0, 0($s0)")
+    if t1.attribute[AttName.type] != Type.bool:
+        raise TypeError(
+            "error in node " + str(expr) + "\n type of the decision statement must be bool!"
+        )
+    t1.attribute[AttName.address].load_address()
+    emit_load("$t0", "$s0")
     align_stack(top)
     emit("beqz $t0, " + l1)
     cgen_stmt(stmt1)
     align_stack(top)
-    emit("j " + l2)
-    emit(l1 + ":")
+    emit_jump(l2)
+    emit_label(l1)
     cgen_stmt(stmt2)
     align_stack(top)
-    emit(l2 + ":")
+    emit_label(l2)
     return
 
 
@@ -101,71 +110,75 @@ def cgen_if2(expr, stmt):
     l1 = create_label()
     top = disFp
     t1 = cgen_expr(expr)
-    if t1.attribute["type"] != 'bool':
-        print("Error")
-        exit(2)
-    t1.attribute["address"].load_address()
-    emit("lw $t0, 0($s0)")
+    if t1.attribute[AttName.type] != Type.bool:
+        raise TypeError(
+            "error in node " + str(expr) + "\n type of the decision statement must be bool!"
+        )
+    t1.attribute[AttName.address].load_address()
+    emit_load("$t0", "$s0")
     align_stack(top)
     emit("beqz $t0, " + l1)
     cgen_stmt(stmt)
     align_stack(top)
-    emit(l1 + ":")
+    emit_label(l1)
     return
 
 
 def cgen_while(node):
     global disFp
-    expr = parseTree.nodes[node].child[0]
-    stmt = parseTree.nodes[node].child[1]
+    expr = node.ref_child[0]
+    stmt = node.ref_child[1]
     top = disFp
     l1 = create_label()
     l2 = create_label()
-    parseTree.nodes[node].attribute["ex_label"] = l2
+    node.attribute[AttName.exit_label] = l2
     t = cgen_expr(expr)
-    if t.attribute["type"] != 'bool':
-        print("Error!")
-        exit(2)
-    emit(l1 + ":")
-    t.attribute["address"].load_address()
-    emit("lw $t0, 0($s0)")
+    if t.attribute[AttName.type] != Type.bool:
+        raise TypeError(
+            "error in node " + str(node) + "\n type of the decision statement must be bool!"
+        )
+    emit_label(l1)
+    t.attribute[AttName.address].load_address()
+    emit_load("$t0", "$s0")
     align_stack(top)
     emit("beqz $t0, " + l2)
     cgen_stmt(stmt)
     align_stack(top)
-    emit("j " + l1)
-    emit(l2 + ":")
+    emit_jump(l1)
+    emit_label(l2)
     return
 
 
 def cgen_for(node):
-    nod = parseTree.nodes[node]
-    expr1 = nod.child[0]
-    expr2 = nod.child[1]
-    expr3 = nod.child[2]
-    stm = nod.child[3]
+    expr1 = node.ref_child[0]
+    expr2 = node.ref_child[1]
+    expr3 = node.ref_child[2]
+    stmt = node.ref_child[3]
     global disFp
     top = disFp
     l1 = create_label()
     l2 = create_label()
-    parseTree.nodes[node].attribute["ex_label"] = l2
-    cgen_expr(expr1)
+    node.attribute[AttName.exit_label] = l2
+    if expr1.data != "nothing":
+        cgen_expr(expr1)
     align_stack(top)
-    emit(l1 + ":")
+    emit_label(l1)
     t = cgen_expr(expr2)
-    if t.attribute["type"] != 'bool':
-        print("Error!")
-        exit(2)
-    t.attribute["address"].load_address()
-    emit("lw $t0, 0($s0)")
+    if t.attribute[AttName.type] != Type.bool:
+        raise TypeError(
+            "error in node " + str(node) + "\n type of the decision statement must be bool!"
+        )
+    t.attribute[AttName.address].load_address()
+    emit_load("$t0", "$s0")
     align_stack(top)
     emit("beqz $t0, " + l2)
-    cgen_stmt(stm)
+    cgen_stmt(stmt)
     align_stack(top)
-    cgen_expr(expr3)
+    if expr3.data != "nothing":
+        cgen_expr(expr3)
     align_stack(top)
-    emit("j " + l1)
-    emit(l2 + ":")
+    emit_jump(l1)
+    emit_label(l2)
     return
 
 
@@ -213,7 +226,12 @@ def cgen_variable_decl(node_id):
 
 
 def cgen_readline(node):  # after calling this function address of the string is in $S0
-    emit("addi $s3, $sp, 0")  # $s3 saves top of stack
+    global disFp
+    disFp -= 4
+    node.attribute[AttName.address] = Address(disFp, 0)
+    node.attribute[AttName.type] = Type.string
+    emit_addi("$sp", "$sp", "-4")
+    emit_move("$s3", "$sp")  # $s3 saves top of stack
     emit_li("$v0", 8)
     emit_li("$a1", 1)  # length of read (1 byte)
     emit_li("$s1", ord("\n"))
@@ -221,50 +239,50 @@ def cgen_readline(node):  # after calling this function address of the string is
     l2 = create_label()
     emit_label(l1)
     emit("addi $sp, $sp, -1")
-    emit("addi $a0, $sp, 0")
+    emit_move("$a0", "$sp")
     emit_syscall()  # read one char and store in top of stack
     emit("lbu $s0, 0($sp)")
     emit("bneq $s0, $s1, " + l1)  # check the end of line
     emit("sub $a0, $s3, $sp")
-    emit("addi $a0, $a0, 1")  # amount ot get memory
+    emit_addi("$a0", "$a0", "1")  # amount ot get memory
     emit_li("$v0", 9)
     emit_syscall()  # first of allocated memory is in $v0
-    emit("addi $v1, $v0, 0")  # store address of string in v1 (don't change this reg!)
-    emit("addi $a0, $a0, -1")
-    emit("addi $sp, $s3, -1")
+    emit_move("$v1", "$v0")  # store address of string in v1 (don't change this reg!)
+    emit_addi("$a0", "$a0", "-1")
+    emit_addi("$sp", "$s3", "-1")
     emit_label(l2)
     emit("lbu $s0, 0($sp)")
     emit("sb $s0, 0($v0)")
-    emit("addi $v0, $v0, 1")
-    emit("addi $sp, $sp, -1")
-    emit("addi $a0, $a0, -1")
-    emit("bnez $a0, l2")  # check that all characters have benn writen
-    # TODO : store a zero character at "0($v0)". I don't know how to do it.
-    emit("addi $s0, $v1, 0")
-    emit("addi $sp, $s3, 0")
-    node.attribute["type"] = "string"
+    emit_addi("$v0", "$v0", "1")
+    emit_addi("$sp", "$sp", "-1")
+    emit_addi("$a0", "$a0", "-1")
+    emit("bnez $a0, " + l2)  # check that all characters have benn writen
+    emit_li("$v0", 0)
+    emit("sb $s0, 0($v0)")
+    emit_move("$sp", "$s3")
+    emit("sw $v1, 0($sp)")
     return node
 
 
 def cgen_readint(node):
     global disFp
-    disFp -= 4
+    Expr.expr_set_node_attributes(node, Type.int)
     emit("li $v0, 5")
     emit("syscall")
     emit("sw $v0, " + str(disFp) + "($fp)")
-    emit("addi $s0, $fp, " + str(disFp))
-    node.attribute["type"] = "integer"
     return node
 
 
-def cgen_if(if_id):
-    node = parseTree.nodes[if_id]
-    length = len(node.child)
+def cgen_if(node):
+    length = len(node.child_ref)
     if length == 2:
-        cgen_if2(node.child[0], node.child[1])
+        cgen_if2(node.child_ref[0], node.child_ref[1])
     elif length == 3:
-        cgen_if1(node.child[0], node.child[1], node.child[2])
-    # TODO {sharifi} mage bazam halat dare? : bara mohkam kariye
+        cgen_if1(node.child_ref[0], node.child_ref[1], node.child_ref[2])
+    else:
+        error(
+            "An illegal pattern used in if statement!"
+        )
 
 
 def cgen_print_stmt(print_id):
@@ -345,16 +363,15 @@ def cgen_stmt_block(node_id):
 
 
 def cgen_break(node):
-    parent = parseTree.nodes[node].parent
+    parent = node.ref_parent
     while parent is not None:
-        data = parseTree.nodes[parent].data
+        data = parent.data
         if data == "whilestmt" or data == "forstmt":
             break
-        parent = parseTree.nodes[parent].parent
+        parent = parent.ref_parent
 
     if parent is None:
-        print("Error!")
-        exit(2)
+        error("Error in break statement, break isn't in a loop!")
 
-    emit("j " + parseTree.nodes[node].attribute["ex_label"])
+    emit_jump(parent.attribute[AttName.exit_label])
     return

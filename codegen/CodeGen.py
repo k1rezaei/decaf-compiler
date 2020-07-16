@@ -1,6 +1,7 @@
 from codegen import Expr
-from codegen.Utils import SymbolTable
+from codegen.Utils import SymbolTable, AttName, Type, Address
 from codegen.grammar import parseTree
+from codegen.Error import error, TypeError
 
 used_labels = 1
 disFp = -4  ### always we have $sp = $fp + disFp.

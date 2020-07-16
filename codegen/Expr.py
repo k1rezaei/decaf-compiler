@@ -411,4 +411,4 @@ def cgen_expr(node):
             elif left_child.data == 'newarray':
                 return cgen_newarray(node)
 
-    return Node("", 0)
+    return Node("", 0, None)

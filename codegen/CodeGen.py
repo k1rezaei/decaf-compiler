@@ -213,7 +213,7 @@ def cgen_variable(node):
 
 def cgen_variable_decl(node):
     global disFp, symbolTable
-    name, type = cgen_variable(node.child_ref[0])
+    name, type = cgen_variable(node.ref_child[0])
     symbolTable.add_variable(type, name)
     if type == "double":
         disFp -= 8
@@ -273,11 +273,11 @@ def cgen_readint(node):
 
 
 def cgen_if(node):
-    length = len(node.child_ref)
+    length = len(node.ref_child)
     if length == 2:
-        cgen_if2(node.child_ref[0], node.child_ref[1])
+        cgen_if2(node.ref_child[0], node.ref_child[1])
     elif length == 3:
-        cgen_if1(node.child_ref[0], node.child_ref[1], node.child_ref[2])
+        cgen_if1(node.ref_child[0], node.ref_child[1], node.ref_child[2])
     else:
         error(
             "An illegal pattern used in if statement!"
@@ -288,7 +288,7 @@ def cgen_print_stmt(node):
     global disFp
     top = disFp
 
-    for child in node.child_ref:
+    for child in node.ref_child:
         expr = cgen_expr(child)
         address = expr.attribute[AttName.address]
         type = expr.attribute[AttName.type]
@@ -310,7 +310,7 @@ def cgen_print_stmt(node):
 
 
 def cgen_stmt(node):
-    child = node.child_ref[0]
+    child = node.ref_child[0]
 
     if child.data is "stmt":
         cgen_stmt(child)
@@ -340,7 +340,7 @@ def cgen_stmt_block(node):
     global disFp
     top = disFp
 
-    for child_node in node.child_ref:
+    for child_node in node.ref_child:
         if child_node.data is "variabledecl":
             cgen_variable_decl(child_node)
         else:

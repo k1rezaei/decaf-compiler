@@ -195,3 +195,4 @@ class Type:
 class AttName:
     type = "type"
     address = "address"
+    exit_label = "ex_label"  # this is for break statement

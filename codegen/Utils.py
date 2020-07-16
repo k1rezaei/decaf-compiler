@@ -31,29 +31,30 @@ class Address:
             CG.emit("addi $s0, $s0, " + str(self.addr[1]))
         return
 
-    def load(self):  # TODO {seyed} ino ba oon load addr bezan
+    def load(self):
         if self.is_double:
             self.load_double()
         else:
-            if self.mode == 0:
-                CG.emit("lw $s0, " + self.to_str())
+            self.load_address()
+            CG.emit("lw $s0, 0($s0)")
 
-    def load_double(self):  # TODO {seyed} ino ba oon load addr bezan
-        if self.mode == 0:
-            CG.emit("ld $s0, " + self.to_str())
-            CG.emit("mtc1.d $s0, $f0")
+    def load_double(self):
+        self.load_address()
+        CG.emit("mtc1.d $s0, $f0")
 
-    def store(self):  # TODO {seyed} ino ba oon load addr bezan
+    def store(self):
         if self.is_double:
             self.store_double()
         else:
-            if self.mode == 0:
-                CG.emit("sw $s0, " + self.to_str())
+            CG.emit_move('$t7', '$s0')
+            self.load_address()
+            CG.emit("sw $t7, 0($s0)")
 
-    def store_double(self):  # TODO {seyed} ino ba oon load addr bezan
-        if self.mode == 0:
-            CG.emit("mfc1.d $s0, $f0")
-            CG.emit("sd $s0, " + self.to_str())
+    def store_double(self):
+        self.load_address()
+        CG.emit_move('$t7', '$s0')
+        CG.emit("mfc1.d $s0, $f0")
+        CG.emit("sd $s0, 0($t7)")
 
     def to_str(self):
         if self.mode == 0:

@@ -82,6 +82,14 @@ def emit(st):
     print(st)
 
 
+def cgen_this(node):
+    pass
+
+
+def cgen_call(node):
+    pass
+
+
 def cgen_if1(expr, stmt1, stmt2):
     global disFp
     l1 = create_label()

@@ -16,16 +16,30 @@ def expr_set_node_attributes(node, type):
     node.attribute[AttName.type] = type
 
 
-def cgen_call(node):
-    pass
+def cgen_expr_assign(node):
+    lvalue = cgen_lvalue(node.ref_child[0])
+    rvalue_expr = cgen_expr(node.ref_child[2])
 
+    rvalue_expr_type = rvalue_expr.attribute[AttName.type]
+    if lvalue.attribute[AttName.type] != rvalue_expr_type:
+        raise TypeError("in node: \n" + node.__repr__() + "\nrvalue and lvalue type must be equal.")
 
-def cgen_this(node):
-    pass
+    expr_set_node_attributes(node, rvalue_expr_type)
+
+    lvalue_address = lvalue.attribute[AttName.address]
+    rvalue_address = rvalue_expr.attribute[AttName]
+
+    rvalue_address.load()
+    CG.emit_move('$t0', '$s0')
+
+    lvalue_address.store()
+    node.attribute[AttName.address].store()
+    return node
 
 
 def cgen_lvalue(node):
-    pass
+
+    return node
 
 
 def cgen_constant_int(node):
@@ -150,6 +164,7 @@ def cgen_expr_neg(node):
 
 
 def cgen_expr_new(node):
+    # TODO in class phase
     pass
 
 
@@ -193,10 +208,6 @@ def cgen_new_array(node):
     CG.emit_move('$s0', '$v0')
     node.attribute[AttName.address].store()
     return node
-
-
-def cgen_expr_assign(node):
-    pass
 
 
 def expr_or_and(node, operation):
@@ -396,9 +407,9 @@ def cgen_expr(node):
         elif child.data == 'readint':
             return CG.cgen_readint(child)
         elif child.data == 'call':
-            return cgen_call(child)
+            return CG.cgen_call(child)
         elif child.data == 'this':
-            return cgen_this(child)
+            return CG.cgen_this(child)
         elif child.data == 'lvalue':
             return cgen_lvalue(child)
         elif child.data == 'constant':
@@ -452,5 +463,3 @@ def cgen_expr(node):
                 return cgen_expr(node.ref_child[1])
             elif left_child.data == 'newarray':
                 return cgen_new_array(node)
-
-    return Node("", 0, None)

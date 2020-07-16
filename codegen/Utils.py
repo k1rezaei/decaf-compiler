@@ -1,5 +1,5 @@
 from codegen.Error import error
-from codegen.CodeGen import emit
+import codegen.CodeGen as CG
 
 
 class Variable:
@@ -27,13 +27,13 @@ class Address:
 
     def load_address(self):
         if self.mode == 0:
-            emit("addi $s0, $fp, " + str(self.addr))
+            CG.emit("addi $s0, $fp, " + str(self.addr))
         elif self.mode == 1:
-            emit("li $s0," + str(self.addr))
+            CG.emit("li $s0," + str(self.addr))
         else:
-            emit("addi $s0, $fp, " + str(self.addr[0]))
-            emit("lw $s0, 0($s0)")
-            emit("addi $s0, $s0, " + str(self.addr[1]))
+            CG.emit("addi $s0, $fp, " + str(self.addr[0]))
+            CG.emit("lw $s0, 0($s0)")
+            CG.emit("addi $s0, $s0, " + str(self.addr[1]))
         return
 
     def load(self):
@@ -41,24 +41,24 @@ class Address:
             self.load_double()
         else:
             if self.mode == 0:
-                emit("lw $s0, " + self.to_str())
+                CG.emit("lw $s0, " + self.to_str())
 
     def load_double(self):
         if self.mode == 0:
-            emit("ld $s0, " + self.to_str())
-            emit("mtc1.d $s0, $f0")
+            CG.emit("ld $s0, " + self.to_str())
+            CG.emit("mtc1.d $s0, $f0")
 
     def store(self):
         if self.is_double:
             self.store_double()
         else:
             if self.mode == 0:
-                emit("sw $s0, " + self.to_str())
+                CG.emit("sw $s0, " + self.to_str())
 
     def store_double(self):
         if self.mode == 0:
-            emit("mfc1.d $s0, $f0")
-            emit("sd $s0, " + self.to_str())
+            CG.emit("mfc1.d $s0, $f0")
+            CG.emit("sd $s0, " + self.to_str())
 
     def to_str(self):
         if self.mode == 0:

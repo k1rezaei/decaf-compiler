@@ -1,8 +1,7 @@
-from codegen.CodeGen import emit, cgen_readint, cgen_readline, emit_data, create_label, emit_load_double
-from codegen.grammar import parseTree
-from codegen.Utils import Variable, Address, SymbolTable, Type, AttName
-from codegen.parsetree import Node
+import codegen.CodeGen as CG
 from codegen.Error import TypeError
+from codegen.Utils import Address, Type, AttName
+from codegen.parsetree import Node
 
 
 def cgen_call(node):
@@ -27,8 +26,8 @@ def cgen_constant_int(node):
     else:
         value = int(value, 16)
 
-    emit('lui $s0, ' + str(value // (2 ** 16)))
-    emit('addiu $s0, $s0, ' + str(value % (2 ** 16)))
+    CG.emit('lui $s0, ' + str(value // (2 ** 16)))
+    CG.emit('addiu $s0, $s0, ' + str(value % (2 ** 16)))
 
     node.attribute[AttName.address].store()
     return node
@@ -39,11 +38,11 @@ def cgen_constant_double(node):
     child = node.ref_child[0]
 
     value = child.data
-    label = create_label()
-    emit_data(label, '.double ' + value)
+    label = CG.create_label()
+    CG.emit_data(label, '.double ' + value)
 
-    emit('la $t0, ' + label)
-    emit_load_double('$f0', '$t0')
+    CG.emit('la $t0, ' + label)
+    CG.emit_load_double('$f0', '$t0')
 
     node.attribute[AttName.address].store()
     return node
@@ -54,9 +53,9 @@ def cgen_constant_bool(node):
     child = node.ref_child[0]
 
     if child.data == 'true':
-        emit("li $s0, 1")
+        CG.emit("li $s0, 1")
     elif child.data == 'false':
-        emit("li $s0, 0")
+        CG.emit("li $s0, 0")
 
     node.attribute[AttName.address].store()
     return node
@@ -67,11 +66,11 @@ def cgen_constant_string(node):
     child = node.ref_child[0]
 
     value = child.data
-    label = create_label()
-    emit_data(label, '.asciiz ' + value)
-    emit_data(create_label(), '.space ' + str(8 - (len(value) - 2) % 8))
+    label = CG.create_label()
+    CG.emit_data(label, '.asciiz ' + value)
+    CG.emit_data(CG.create_label(), '.space ' + str(8 - (len(value) - 2) % 8))
 
-    emit('la $s0, ' + label)
+    CG.emit('la $s0, ' + label)
     node.attribute[AttName.address].store()
     return node
 
@@ -79,7 +78,7 @@ def cgen_constant_string(node):
 def cgen_constant_null(node):
     expr_set_node_attributes(node, Type.null)
 
-    emit("la $s0, null")
+    CG.emit("la $s0, null")
 
     node.attribute[AttName.address].store()
     return node
@@ -109,8 +108,8 @@ def cgen_expr_not(node):
     child_address = child.attribute[AttName.address]
     child_address.load()
 
-    emit("li $t0, 1")
-    emit("sub $s0, $t0, $s0")
+    CG.emit("li $t0, 1")
+    CG.emit("sub $s0, $t0, $s0")
 
     child_address.store()
 
@@ -124,9 +123,9 @@ def cgen_expr_neg(node):
     child_address.load()
 
     if child_type == Type.int:
-        emit("sub $s0, $zero, $s0")
+        CG.emit("sub $s0, $zero, $s0")
     elif child_type == Type.double:
-        emit("neg.d $f0, $f0")
+        CG.emit("neg.d $f0, $f0")
     else:
         raise TypeError("in node: \n" + node.__repr__() + "\n expr's type is not int or double.")
 
@@ -147,15 +146,14 @@ def cgen_expr_assign(node):
 
 
 def expr_set_node_attributes(node, type):
-    global disFp
-    emit("addi $sp, -4")
-    disFp -= 4
+    CG.emit("addi $sp, -4")
+    CG.disFp -= 4
 
     if type == Type.double:
-        emit("addi $sp, -4")
-        disFp -= 4
+        CG.emit("addi $sp, -4")
+        CG.disFp -= 4
 
-    node.attribute[AttName.address] = Address(disFp, 0)
+    node.attribute[AttName.address] = Address(CG.disFp, 0)
     node.attribute[AttName.type] = type
 
 
@@ -174,9 +172,9 @@ def expr_or_and(node, operation):
     right_child_address = right_child.attribute[AttName.address]
 
     left_child_address.load()
-    emit("move $s1, $s0")
+    CG.emit("move $s1, $s0")
     right_child_address.load()
-    emit(operation + " $s0, $s0, $s1")
+    CG.emit(operation + " $s0, $s0, $s1")
     address.store()
 
     return node
@@ -201,29 +199,29 @@ def cgen_expr_equal(node):
     right_child_address = right_child.attribute[AttName.address]
 
     if left_child.attribute[AttName.type] != right_child.attribute[AttName.type]:
-        emit("li $s0, 0")
+        CG.emit("li $s0, 0")
     elif left_child.attribute[AttName.type] == Type.double:
         left_child_address.load()
-        emit("mov.d $f2, $f0")
+        CG.emit("mov.d $f2, $f0")
         right_child_address.load()
-        emit("c.eq.d $f0, $f2")
+        CG.emit("c.eq.d $f0, $f2")
         # TODO chejoori mishe be flagesh dastresi dasht :-?
     elif left_child.attribute[AttName.type] in (Type.array, Type.string):
         pass
         # TODO :((
     else:
         left_child_address.load()
-        emit("move $s1, $s0")
+        CG.emit("move $s1, $s0")
         right_child_address.load()
-        emit("and $t0, $s0, $s1")
+        CG.emit("and $t0, $s0, $s1")
 
-        emit("slt $t1, $t0, $zero")
-        emit("slt $t0, $zero, $t0")
-        emit("or $t0, $t0, $t1")
+        CG.emit("slt $t1, $t0, $zero")
+        CG.emit("slt $t0, $zero, $t0")
+        CG.emit("or $t0, $t0, $t1")
 
-        emit("li $t1, 1")
-        emit("sub $s0, $t1, $t0")
-        emit("")
+        CG.emit("li $t1, 1")
+        CG.emit("sub $s0, $t1, $t0")
+        CG.emit("")
 
     address.store()
     return node
@@ -234,8 +232,8 @@ def cgen_expr_nequal(node):
     address = node.attribute[AttName.address]
 
     address.load()
-    emit("li $t0, 1")
-    emit("sub $t0, $s0")
+    CG.emit("li $t0, 1")
+    CG.emit("sub $t0, $s0")
     address.store()
     return node
 
@@ -273,14 +271,14 @@ def expr_add_sub(node, operation):
             "in node: \n" + node.__repr__() + "\n exprs' types are not good for " + operation + " operation.")
     elif left_child_type == Type.int:
         left_child_address.load()
-        emit("move $s1, $s0")
+        CG.emit("move $s1, $s0")
         right_child_address.load()
-        emit(operation + " $s0, $s0, $s1")
+        CG.emit(operation + " $s0, $s0, $s1")
     elif left_child_type == Type.double:
         left_child_address.load()
-        emit("mov.d $f2, $f0")
+        CG.emit("mov.d $f2, $f0")
         right_child_address.load()
-        emit(operation + ".d $f0, $f0, $f2")
+        CG.emit(operation + ".d $f0, $f0, $f2")
 
     address.store()
     return node
@@ -312,22 +310,22 @@ def expr_mul_mod_div(node, operation):
             "in node: \n" + node.__repr__() + "\n exprs' types are not good for " + operation + " operation.")
     elif left_child_type == Type.int:
         left_child_address.load()
-        emit("move $s1, $s0")
+        CG.emit("move $s1, $s0")
         right_child_address.load()
         if operation == 'mul':
-            emit("mult $s0, $s1")
+            CG.emit("mult $s0, $s1")
         else:
-            emit("div $s0, $s1")
+            CG.emit("div $s0, $s1")
 
         if operation == 'mod':
-            emit("mfhi $s0")
+            CG.emit("mfhi $s0")
         else:
-            emit("mflo $s0")
+            CG.emit("mflo $s0")
     elif left_child_type == Type.double:
         left_child_address.load()
-        emit("mov.d $f2, $f0")
+        CG.emit("mov.d $f2, $f0")
         right_child_address.load()
-        emit(operation + ".d $f0, $f0, $f2")
+        CG.emit(operation + ".d $f0, $f0, $f2")
 
     address.store()
     return node
@@ -352,9 +350,9 @@ def cgen_expr(node):
         if child.data == 'expr':
             return cgen_expr(child)
         elif child.data == 'readline':
-            return cgen_readline(child)
+            return CG.cgen_readline(child)
         elif child.data == 'readint':
-            return cgen_readint(child)
+            return CG.cgen_readint(child)
         elif child.data == 'call':
             return cgen_call(child)
         elif child.data == 'this':

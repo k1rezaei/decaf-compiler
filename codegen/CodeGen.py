@@ -311,6 +311,8 @@ def cgen_print_stmt(node):
 
 def cgen_stmt(node):
     child = node.ref_child[0]
+    global disFp
+    top = disFp
 
     if child.data is "stmt":
         cgen_stmt(child)
@@ -324,6 +326,7 @@ def cgen_stmt(node):
         cgen_stmt_block(child)
     elif child.data is "expr":
         cgen_expr(child)
+        align_stack(top)
     elif child.data is "breakstmt":
         cgen_break(child)
     elif child.data is "printstmt":

@@ -37,7 +37,45 @@ def cgen_expr_assign(node):
     return node
 
 
+def expr_ident(node):
+    return node.ref_child[0].data
+
+
 def cgen_lvalue(node):
+    left_child = node.ref_child[0]
+    right_child = node.ref_child[2]
+
+    if left_child.data == 'ident':
+        ident_name = expr_ident(left_child)
+        variable = CG.symbolTable.get_variable_by_name(ident_name)
+        node.attribute[AttName.type] = variable.type
+        node.attribute[AttName.address] = variable.address
+    elif right_child.data == 'ident':
+        expr = cgen_expr(left_child)
+        ident_name = expr_ident(right_child)
+        # TODO inja niaze ke symbol table bara kelas biad
+    else:
+        left_expr = cgen_expr(left_child)
+        right_expr = cgen_expr(right_child)
+
+        if left_expr.attribute[AttName.type] != Type.array:
+            raise TypeError("in node: \n" + node.__repr__() + "\nleft-expr isn't an array.")
+        if right_expr.attribute[AttName.type] != Type.int:
+            raise TypeError("in node: \n" + node.__repr__() + "\nleft-expr isn't not an integer.")
+
+        node.attribute[AttName.type] = Type.array
+        array_member_type = left_expr.attribute[AttName.array_member_type]
+        dimension = left_expr.attribute[AttName.array_dim] - 1
+        if dimension > 0:
+            node.attribute[AttName.array_dim] = dimension
+            node.attribute[AttName.array_member_type] = array_member_type
+        else:
+            node.attribute[AttName.type] = array_member_type
+
+        node.attribute[AttName.address] = Address((
+            left_expr.attribute[AttName.address],
+            right_expr.attribute[AttName.address]
+        ), 3, array_member_type == Type.double and dimension == 0)
 
     return node
 

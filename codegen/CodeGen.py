@@ -1,4 +1,4 @@
-from codegen import Expr
+from codegen.Expr import *
 from codegen.Utils import SymbolTable, AttName, Type, Address
 from codegen.grammar import parseTree
 from codegen.Error import error, TypeError
@@ -184,38 +184,36 @@ def cgen_for(node):
 
 
 # get type of a type node
-def get_type(type_id):
-    node = parseTree.nodes[type_id]
-    type_pri_id = node.child[0]
-    node = parseTree.node[type_pri_id]
-    type_id_direct = node.child[0]
-    node = parseTree.nodes[type_id_direct]
-    return node.data
+def get_type(node):
+    # node = parseTree.nodes[type_id]
+    # type_pri_id = node.child[0]
+    # node = parseTree.node[type_pri_id]
+    # type_id_direct = node.child[0]
+    # node = parseTree.nodes[type_id_direct]
+    return node.ref_child[0].ref_child[0].data
     pass
 
 
-def get_name(ident_id):
-    node = parseTree.nodes[ident_id]
-    ident_id_direct = node.child[0]
-    node = parseTree.nodes[ident_id_direct]
-    return node.data
+def get_name(node):
+    # node = parseTree.nodes[ident_id]
+    # ident_id_direct = node.child[0]
+    # node = parseTree.nodes[ident_id_direct]
+    return node.ref_child[0].data
     pass
 
 
-def cgen_variable(variable_id):
-    node = parseTree.node[variable_id]
-    type_id = node.child[0]
-    ident_id = node.child[1]
-    type = get_type(type_id)
-    name = get_name(ident_id)
+def cgen_variable(node):
+    # node = parseTree.node[variable_id]
+    # type_id = node.child[0]
+    # ident_id = node.child[1]
+    type = get_type(node.ref_child[0])
+    name = get_name(node.ref_child[1])
     return name, type
 
 
-def cgen_variable_decl(node_id):
+def cgen_variable_decl(node):
     global disFp, symbolTable
-    node = parseTree.nodes[node_id]
-    variable_id = node.child[0]
-    name, type = cgen_variable(variable_id)
+    name, type = cgen_variable(node.ref_child[0])
     symbolTable.add_variable(type, name)
     if type == "double":
         disFp -= 8
@@ -267,7 +265,7 @@ def cgen_readline(node):  # after calling this function address of the string is
 
 def cgen_readint(node):
     global disFp
-    Expr.expr_set_node_attributes(node, Type.int)
+    expr_set_node_attributes(node, Type.int)
     emit("li $v0, 5")
     emit("syscall")
     emit("sw $v0, " + str(disFp) + "($fp)")
@@ -275,36 +273,35 @@ def cgen_readint(node):
 
 
 def cgen_if(node):
-    length = len(node.child_ref)
+    length = len(node.ref_child)
     if length == 2:
-        cgen_if2(node.child_ref[0], node.child_ref[1])
+        cgen_if2(node.ref_child[0], node.ref_child[1])
     elif length == 3:
-        cgen_if1(node.child_ref[0], node.child_ref[1], node.child_ref[2])
+        cgen_if1(node.ref_child[0], node.ref_child[1], node.ref_child[2])
     else:
         error(
             "An illegal pattern used in if statement!"
         )
 
 
-def cgen_print_stmt(print_id):
+def cgen_print_stmt(node):
     global disFp
     top = disFp
 
-    node = parseTree.nodes[print_id]
-    for child_id in node.child:
-        expr = cgen_expr(child_id)
-        address = expr.attribute["address"]
-        type = expr.attribute["type"]
+    for child in node.ref_child:
+        expr = cgen_expr(child)
+        address = expr.attribute[AttName.address]
+        type = expr.attribute[AttName.type]
         address.load_address()
         if type is "double":
             emit_load_double("$f12", "$s0")
             emit_li("$v0", 3)
             emit_syscall()
-        elif type is "string":  ## TODO {keivan} is it correct? :>
+        elif type is "string":
             emit_load("$a0", "$s0")
             emit_li("$v0", 4)
             emit_syscall()
-        else:
+        else:  # TODO {keivan} type haye bad ro check nakardi (mesl bool)!
             emit_load("$a0", "$s0")
             emit_li("$v0", 1)
             emit_syscall()
@@ -312,47 +309,41 @@ def cgen_print_stmt(print_id):
         align_stack(top)
 
 
-def cgen_expr(node_id):
-    node = parseTree.nodes[node_id]
-    return Expr.cgen_expr(node)
-
-
-def cgen_stmt(node_id):
-    node = parseTree.nodes[node_id]
-    child_id = node.child[0]
-    child = parseTree.nodes[child_id]
+def cgen_stmt(node):
+    child = node.ref_child[0]
+    global disFp
+    top = disFp
 
     if child.data is "stmt":
-        cgen_stmt(child_id)
+        cgen_stmt(child)
     elif child.data is "forstmt":
-        cgen_for(child_id)
+        cgen_for(child)
     elif child.data is "whilestmt":
-        cgen_while(child_id)
+        cgen_while(child)
     elif child.data is "ifstmt":
-        cgen_if(child_id)
+        cgen_if(child)
     elif child.data is "stmtblock":
-        cgen_stmt_block(child_id)
+        cgen_stmt_block(child)
     elif child.data is "expr":
-        cgen_expr(child_id)
+        cgen_expr(child)
+        align_stack(top)
     elif child.data is "breakstmt":
-        cgen_break(child_id)
+        cgen_break(child)
     elif child.data is "printstmt":
-        cgen_print_stmt(child_id)
+        cgen_print_stmt(child)
 
 
 # TODO cgen_return_stmt
 
 
-def cgen_stmt_block(node_id):
+def cgen_stmt_block(node):
     global symbolTable
     symbolTable.add_scope()
-    node = parseTree.nodes[node_id]
 
     global disFp
     top = disFp
 
-    for id in node.child:
-        child_node = parseTree.nodes[id]
+    for child_node in node.ref_child:
         if child_node.data is "variabledecl":
             cgen_variable_decl(child_node)
         else:

@@ -11,6 +11,14 @@ disFp = -4  ### always we have $sp = $fp + disFp.
 symbolTable = SymbolTable(False)
 
 
+def emit_addi(v1, v2, v3):
+    emit("addi " + v1 + ", " + v2 + ", " + v3)
+
+
+def emit_move(dst, src):
+    emit("move " + dst + ", " + src)
+
+
 def emit_jump(label):
     emit("j " + label)
 
@@ -216,7 +224,12 @@ def cgen_variable_decl(node_id):
 
 
 def cgen_readline(node):  # after calling this function address of the string is in $S0
-    emit("addi $s3, $sp, 0")  # $s3 saves top of stack
+    global disFp
+    disFp -= 4
+    node.attribute[AttName.address] = Address(disFp, 0)
+    node.attribute[AttName.type] = Type.string
+    emit_addi("$sp", "$sp", "-4")
+    emit_move("$s3", "$sp")  # $s3 saves top of stack
     emit_li("$v0", 8)
     emit_li("$a1", 1)  # length of read (1 byte)
     emit_li("$s1", ord("\n"))
@@ -224,39 +237,37 @@ def cgen_readline(node):  # after calling this function address of the string is
     l2 = create_label()
     emit_label(l1)
     emit("addi $sp, $sp, -1")
-    emit("addi $a0, $sp, 0")
+    emit_move("$a0", "$sp")
     emit_syscall()  # read one char and store in top of stack
     emit("lbu $s0, 0($sp)")
     emit("bneq $s0, $s1, " + l1)  # check the end of line
     emit("sub $a0, $s3, $sp")
-    emit("addi $a0, $a0, 1")  # amount ot get memory
+    emit_addi("$a0", "$a0", "1")  # amount ot get memory
     emit_li("$v0", 9)
     emit_syscall()  # first of allocated memory is in $v0
-    emit("addi $v1, $v0, 0")  # store address of string in v1 (don't change this reg!)
-    emit("addi $a0, $a0, -1")
-    emit("addi $sp, $s3, -1")
+    emit_move("$v1", "$v0")  # store address of string in v1 (don't change this reg!)
+    emit_addi("$a0", "$a0", "-1")
+    emit_addi("$sp", "$s3", "-1")
     emit_label(l2)
     emit("lbu $s0, 0($sp)")
     emit("sb $s0, 0($v0)")
-    emit("addi $v0, $v0, 1")
-    emit("addi $sp, $sp, -1")
-    emit("addi $a0, $a0, -1")
-    emit("bnez $a0, l2")  # check that all characters have benn writen
-    # TODO : store a zero character at "0($v0)". I don't know how to do it.
-    emit("addi $s0, $v1, 0")
-    emit("addi $sp, $s3, 0")
-    node.attribute["type"] = "string"
+    emit_addi("$v0", "$v0", "1")
+    emit_addi("$sp", "$sp", "-1")
+    emit_addi("$a0", "$a0", "-1")
+    emit("bnez $a0, " + l2)  # check that all characters have benn writen
+    emit_li("$v0", 0)
+    emit("sb $s0, 0($v0)")
+    emit_move("$sp", "$s3")
+    emit("sw $v1, 0($sp)")
     return node
 
 
 def cgen_readint(node):
     global disFp
-    disFp -= 4
+    Expr.expr_set_node_attributes(node, Type.int)
     emit("li $v0, 5")
     emit("syscall")
     emit("sw $v0, " + str(disFp) + "($fp)")
-    emit("addi $s0, $fp, " + str(disFp))
-    node.attribute["type"] = "integer"
     return node
 
 

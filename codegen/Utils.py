@@ -225,4 +225,4 @@ class StackHandler:
         self.checkpoints = self.checkpoints[:-1]
 
 
-stack_handler = StackHandler
+stack_handler = StackHandler()

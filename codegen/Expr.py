@@ -1,6 +1,6 @@
 import codegen.CodeGen as CG
 from codegen.Error import TypeError
-from codegen.Utils import Address, Type, AttName
+from codegen.Utils import Address, Type, AttName, stack_handler
 from codegen.parsetree import Node
 
 
@@ -17,14 +17,13 @@ def expr_set_node_attributes(node, type):
 
 
 def cgen_expr_assign(node):
+    stack_handler.add_checkpoint()
     lvalue = cgen_lvalue(node.ref_child[0])
     rvalue_expr = cgen_expr(node.ref_child[2])
 
     rvalue_expr_type = rvalue_expr.attribute[AttName.type]
     if lvalue.attribute[AttName.type] != rvalue_expr_type:
         raise TypeError("in node: \n" + node.__repr__() + "\nrvalue and lvalue type must be equal.")
-
-    expr_set_node_attributes(node, rvalue_expr_type)
 
     lvalue_address = lvalue.attribute[AttName.address]
     rvalue_address = rvalue_expr.attribute[AttName]
@@ -33,6 +32,9 @@ def cgen_expr_assign(node):
     CG.emit_move('$t0', '$s0')
 
     lvalue_address.store()
+
+    stack_handler.back_to_last_checkpoint()
+    expr_set_node_attributes(node, rvalue_expr_type)
     node.attribute[AttName.address].store()
     return node
 
@@ -53,7 +55,7 @@ def cgen_lvalue(node):
     elif right_child.data == 'ident':
         expr = cgen_expr(left_child)
         ident_name = expr_ident(right_child)
-        # TODO inja niaze ke symbol table bara kelas biad
+        # TODO inja niaze ke symbol table bara kelas biad (stackam havaset baseh inja)
     else:
         left_expr = cgen_expr(left_child)
         right_expr = cgen_expr(right_child)
@@ -217,8 +219,7 @@ def expr_type(node):
 
 def cgen_new_array(node):
     # TODO kollan moghe memory allocate kardan bayad havasemoon bashe %8=0 bashe ke mogheyi ke double migirim ok bashe?
-    expr_set_node_attributes(node, Type.array)
-
+    stack_handler.add_checkpoint()
     len_expr = cgen_expr(node.ref_child[1])
     (member_type, dimension) = expr_type(node.ref_child[2])
 
@@ -234,8 +235,6 @@ def cgen_new_array(node):
         CG.emit_li('$t0', '4')
 
     CG.emit_addi('$s0', '$s0', '1')
-    # man farz kardam ke double age bashe avvalesh 8 byte bara toole arraye oke?
-    # akhe goftam shayad double bayad faghat az address haye zoj bashe!
     CG.emit('mult $s0, $t0')
     CG.emit('mflo $a0')
     CG.emit_li('$v0', 9)
@@ -244,14 +243,16 @@ def cgen_new_array(node):
     CG.emit('sw $s0, 0($v0)')  # Set length
 
     CG.emit_move('$s0', '$v0')
+
+    stack_handler.back_to_last_checkpoint()
+    expr_set_node_attributes(node, Type.array)
     node.attribute[AttName.address].store()
     return node
 
 
 def expr_or_and(node, operation):
     # operation = 'and' or 'or'
-    expr_set_node_attributes(node, Type.bool)
-    address = node.attribute[AttName.address]
+    stack_handler.add_checkpoint()
 
     left_child = cgen_expr(node.ref_child[0])
     right_child = cgen_expr(node.ref_child[2])
@@ -266,7 +267,10 @@ def expr_or_and(node, operation):
     CG.emit("move $s1, $s0")
     right_child_address.load()
     CG.emit(operation + " $s0, $s0, $s1")
-    address.store()
+
+    stack_handler.back_to_last_checkpoint()
+    expr_set_node_attributes(node, Type.bool)
+    node.attribute[AttName.address].store()
 
     return node
 
@@ -280,8 +284,7 @@ def cgen_expr_bitand(node):
 
 
 def cgen_expr_equal(node):
-    expr_set_node_attributes(node, Type.bool)
-    address = node.attribute[AttName.address]
+    stack_handler.add_checkpoint()
 
     left_child = cgen_expr(node.ref_child[0])
     right_child = cgen_expr(node.ref_child[2])
@@ -310,7 +313,10 @@ def cgen_expr_equal(node):
         CG.emit("sub $s0, $t1, $t0")
         CG.emit("")
 
-    address.store()
+    stack_handler.back_to_last_checkpoint()
+
+    expr_set_node_attributes(node, Type.bool)
+    node.attribute[AttName.address].store()
     return node
 
 
@@ -348,8 +354,7 @@ def cgen_expr_gr(node):
 
 
 def cgen_expr_le(node):
-    expr_set_node_attributes(node, Type.bool)
-    address = node.attribute[AttName.address]
+    stack_handler.add_checkpoint()
 
     left_child = cgen_expr(node.ref_child[0])
     right_child = cgen_expr(node.ref_child[2])
@@ -372,14 +377,20 @@ def cgen_expr_le(node):
     else:
         raise TypeError("in node: \n" + node.__repr__() + "\nExprs' type isn't comparable.")
 
-    address.store()
+    stack_handler.back_to_last_checkpoint()
+    expr_set_node_attributes(node, Type.bool)
+    node.attribute[AttName.address].store()
     return node
 
 
 def cgen_expr_leq(node):
+    stack_handler.add_checkpoint()
     node = cgen_expr_leq(node)
     node.attribute[AttName.address].load()
     CG.emit_move("$s2", "$s0")
+
+    stack_handler.back_to_last_checkpoint()
+
     node = cgen_expr_equal(node)
     node.attribute[AttName.address].load()
     CG.emit("or $s0, $s0, $s2")
@@ -389,12 +400,10 @@ def cgen_expr_leq(node):
 
 def expr_add_sub(node, operation):
     # operation = 'add' or 'sub'
+    stack_handler.add_checkpoint()
     left_child = cgen_expr(node.ref_child[0])
     right_child = cgen_expr(node.ref_child[2])
     left_child_type = left_child.attribute[AttName.type]
-
-    expr_set_node_attributes(node, left_child_type)
-    address = node.attribute[AttName.address]
 
     left_child_address = left_child.attribute[AttName.address]
     right_child_address = right_child.attribute[AttName.address]
@@ -413,7 +422,9 @@ def expr_add_sub(node, operation):
         right_child_address.load()
         CG.emit(operation + ".d $f0, $f0, $f2")
 
-    address.store()
+    stack_handler.back_to_last_checkpoint()
+    expr_set_node_attributes(node, left_child_type)
+    node.attribute[AttName.address].store()
     return node
 
 
@@ -427,12 +438,10 @@ def cgen_expr_sub(node):
 
 def expr_mul_mod_div(node, operation):
     # operation = 'div' or 'mod' or 'mul'
+    stack_handler.add_checkpoint()
     left_child = cgen_expr(node.ref_child[0])
     right_child = cgen_expr(node.ref_child[2])
     left_child_type = left_child.attribute[AttName.type]
-
-    expr_set_node_attributes(node, left_child_type)
-    address = node.attribute[AttName.address]
 
     left_child_address = left_child.attribute[AttName.address]
     right_child_address = right_child.attribute[AttName.address]
@@ -460,7 +469,9 @@ def expr_mul_mod_div(node, operation):
         right_child_address.load()
         CG.emit(operation + ".d $f0, $f0, $f2")
 
-    address.store()
+    stack_handler.back_to_last_checkpoint()
+    expr_set_node_attributes(node, left_child_type)
+    node.attribute[AttName.address].store()
     return node
 
 

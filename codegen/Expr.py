@@ -292,11 +292,7 @@ def cgen_expr_equal(node):
     if left_child.attribute[AttName.type] != right_child.attribute[AttName.type]:
         CG.emit("li $s0, 0")
     elif left_child.attribute[AttName.type] == Type.double:
-        left_child_address.load()
-        CG.emit("mov.d $f2, $f0")
-        right_child_address.load()
-        CG.emit("c.eq.d $f0, $f2")
-        # TODO chejoori mishe be flagesh dastresi dasht :-?
+        expr_float_cmp(left_child_address, right_child_address, 'eq')
     elif left_child.attribute[AttName.type] in (Type.array, Type.string):
         pass
         # TODO :((
@@ -318,6 +314,18 @@ def cgen_expr_equal(node):
     return node
 
 
+def expr_float_cmp(left_child_address, right_child_address, operation):
+    left_child_address.load()
+    CG.emit("mov.d $f2, $f0")
+    right_child_address.load()
+    CG.emit("c." + operation + ".d $f2, $f0")
+    label = CG.create_label()
+    CG.emit_li('$s0', 1)
+    CG.emit('bc1t ' + label)
+    CG.emit_li('$s0', 0)
+    CG.emit_label(label)
+
+
 def cgen_expr_nequal(node):
     node = cgen_expr_equal(node)
     address = node.attribute[AttName.address]
@@ -330,19 +338,53 @@ def cgen_expr_nequal(node):
 
 
 def cgen_expr_grq(node):
-    pass
+    (node.ref_child[0], node.ref_child[1]) = (node.ref_child[1], node.ref_child[0])
+    return cgen_expr_leq(node)
 
 
 def cgen_expr_gr(node):
-    pass
+    (node.ref_child[0], node.ref_child[1]) = (node.ref_child[1], node.ref_child[0])
+    return cgen_expr_le(node)
 
 
 def cgen_expr_le(node):
-    pass
+    expr_set_node_attributes(node, Type.bool)
+    address = node.attribute[AttName.address]
+
+    left_child = cgen_expr(node.ref_child[0])
+    right_child = cgen_expr(node.ref_child[2])
+
+    left_child_address = left_child.attribute[AttName.address]
+    right_child_address = right_child.attribute[AttName.address]
+
+    if left_child.attribute[AttName.type] != right_child.attribute[AttName.type]:
+        raise TypeError("in node: \n" + node.__repr__() + "\nTwo exprs must have same type.")
+    elif left_child.attribute[AttName.type] == Type.double:
+        expr_float_cmp(left_child_address, right_child_address, 'lt')
+    elif left_child.attribute[AttName.type] == Type.string:
+        pass
+        # TODO :((
+    elif left_child.attribute[AttName.type] == Type.int:
+        left_child_address.load()
+        CG.emit_move("$s1", "$s0")
+        right_child_address.load()
+        CG.emit("slt $s0, $s0, $s1")
+    else:
+        raise TypeError("in node: \n" + node.__repr__() + "\nExprs' type isn't comparable.")
+
+    address.store()
+    return node
 
 
 def cgen_expr_leq(node):
-    pass
+    node = cgen_expr_leq(node)
+    node.attribute[AttName.address].load()
+    CG.emit_move("$s2", "$s0")
+    node = cgen_expr_equal(node)
+    node.attribute[AttName.address].load()
+    CG.emit("or $s0, $s0, $s2")
+    node.attribute[AttName.address].store()
+    return node
 
 
 def expr_add_sub(node, operation):

@@ -228,6 +228,8 @@ parser = Lark(grammar, parser='lalr', debug=False)
 code = """
 int main(){
     int i; 
+    int j;
+    i=1;
 }
 """
 x = parser.parse(code)

@@ -61,11 +61,11 @@ def cgen_readint(node):
 
 
 def expr_set_node_attributes(node, type):
-    emit("addi $sp, -4")
+    emit_addi('$sp', '$sp', '-4')
     ut.disFp -= 4
 
     if type == Type.double:
-        emit("addi $sp, -4")
+        emit_addi('$sp', '$sp', '-4')
         ut.disFp -= 4
 
     node.attribute[AttName.address] = Address(ut.disFp, 0)

@@ -375,3 +375,6 @@ def cgen_break(node):
 
     emit_jump(parent.attribute[AttName.exit_label])
     return
+
+
+cgen_stmt_block(parseTree.nodes[0].ref_child[0].ref_child[0].ref_child[3])

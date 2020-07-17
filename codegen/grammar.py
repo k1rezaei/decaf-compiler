@@ -222,9 +222,13 @@ keyWords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'nu
             'for', 'while', 'if', 'else', 'return', 'break', 'new', 'NewArray', 'Print', 'ReadInteger', 'ReadLine']
 
 parser = Lark(grammar, parser='lalr', debug=False)
-code = ""
-for i in range(5):
-    code += input()
+code = """
+int main(){
+    int i; 
+    int j; 
+    i=2;
+}
+"""
 x = parser.parse(code)
 parseTree = ParseTree(x)
 print(parseTree)

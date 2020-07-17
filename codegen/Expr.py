@@ -1,4 +1,5 @@
-from codegen.Utils import create_label, emit_load, emit_addi, emit_data, emit_label, emit_load_double, emit_li, emit_move, emit_jump, emit_syscall, emit
+from codegen.Utils import create_label, emit_load, emit_addi, emit_data, emit_label, emit_load_double, emit_li, \
+    emit_move, emit_jump, emit_syscall, emit
 import codegen.Utils as ut
 from codegen.Utils import AttName, Address, align_stack, Type, stack_handler
 from codegen.Error import TypeError
@@ -100,7 +101,9 @@ def expr_ident(node):
 
 def cgen_lvalue(node):
     left_child = node.ref_child[0]
-    right_child = node.ref_child[2]
+    right_child = None
+    if len(node.ref_child) >= 3:
+        right_child = node.ref_child[2]
 
     if left_child.data == 'ident':
         ident_name = expr_ident(left_child)
@@ -351,7 +354,7 @@ def cgen_expr_equal(node):
         emit("li $s0, 0")
     elif left_child.attribute[AttName.type] == Type.double:
         expr_float_cmp(left_child_address, right_child_address, 'eq')
-    #elif left_child.attribute[AttName.type] in (Type.array, Type.string):
+    # elif left_child.attribute[AttName.type] in (Type.array, Type.string):
     #    pass
     # TODO string, array alan farz shodan ke refrence shoon check beshe
     else:

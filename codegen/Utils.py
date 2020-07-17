@@ -209,3 +209,20 @@ class AttName:
     exit_label = "ex_label"  # this is for break statement
     array_member_type = "arr_member_type"
     array_dim = "arr_dim"
+
+
+class StackHandler:
+    def __init__(self):
+        self.checkpoints = []
+
+    def add_checkpoint(self):
+        self.checkpoints.append(CG.disFp)
+
+    def back_to_last_checkpoint(self):
+        if len(self.checkpoints) == 0:
+            raise RuntimeError()
+        CG.align_stack(self.checkpoints[-1])
+        self.checkpoints = self.checkpoints[:-1]
+
+
+stack_handler = StackHandler

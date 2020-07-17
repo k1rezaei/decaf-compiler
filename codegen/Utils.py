@@ -3,15 +3,6 @@ from codegen.Error import error
 used_labels = 1
 disFp = -4  ### always we have $sp = $fp + disFp.
 
-data_section = '''.data
-null:
-    .space 8
-
-'''
-
-def print_data_section():
-    global data_section
-    print(data_section)
 
 def create_label():
     global used_labels
@@ -65,9 +56,30 @@ def emit_syscall():
     emit("syscall")
 
 
+data_section = '''.data
+null:
+    .space 8
+
+'''
+
+
 def emit_data(label, input):
     global data_section
     data_section += '    ' + label + ':\n' + input + '\n'
+
+
+def print_data_section():
+    global data_section
+    print(data_section)
+
+
+_debug = True
+
+
+def emit_comment(comment):
+    global _debug
+    if _debug:
+        emit('# ' + comment)
 
 
 def emit(st):
@@ -94,6 +106,7 @@ class Address:
         self.is_double = is_double
 
     def load_address(self):
+        emit_comment('Address.load_address()')
         if self.mode == 0:
             emit("addi $s0, $fp, " + str(self.addr))
         elif self.mode == 1:
@@ -118,6 +131,7 @@ class Address:
         return
 
     def load(self):
+        emit_comment('Address.load()')
         if self.is_double:
             self.load_double()
         else:
@@ -129,6 +143,7 @@ class Address:
         emit("mtc1.d $s0, $f0")
 
     def store(self):
+        emit_comment('Address.store()')
         if self.is_double:
             self.store_double()
         else:
@@ -292,9 +307,11 @@ class StackHandler:
         self.checkpoints = []
 
     def add_checkpoint(self):
+        emit_comment('StackHandler.add_checkpoint')
         self.checkpoints.append(disFp)
 
     def back_to_last_checkpoint(self):
+        emit_comment('StackHandler.back_to_last_checkpoint')
         if len(self.checkpoints) == 0:
             raise RuntimeError()
         align_stack(self.checkpoints[-1])

@@ -1,11 +1,13 @@
 from codegen.Expr import cgen_expr, expr_set_node_attributes
-from codegen.Utils import create_label, emit_load, emit_addi, emit_data, emit_label, emit_load_double, emit_li, emit_move, emit_jump, emit_syscall, emit
+from codegen.Utils import emit_comment, create_label, emit_load, emit_addi, emit_data, emit_label, emit_load_double, \
+    emit_li, emit_move, emit_jump, emit_syscall, emit
 import codegen.Utils as ut
 from codegen.Utils import AttName, Address, align_stack, Type
 from codegen.Error import error, TypeError
 
 
 def cgen_if1(expr, stmt1, stmt2):
+    emit_comment('cgen_if1')
     l1 = create_label()
     l2 = create_label()
     top = ut.disFp
@@ -29,6 +31,7 @@ def cgen_if1(expr, stmt1, stmt2):
 
 
 def cgen_if2(expr, stmt):
+    emit_comment('cgen_if2')
     l1 = create_label()
     top = ut.disFp
     t1 = cgen_expr(expr)
@@ -47,6 +50,7 @@ def cgen_if2(expr, stmt):
 
 
 def cgen_while(node):
+    emit_comment('cgen_while')
     expr = node.ref_child[0]
     stmt = node.ref_child[1]
     top = ut.disFp
@@ -71,6 +75,7 @@ def cgen_while(node):
 
 
 def cgen_for(node):
+    emit_comment('cgen_for')
     expr1 = node.ref_child[0]
     expr2 = node.ref_child[1]
     expr3 = node.ref_child[2]
@@ -122,6 +127,7 @@ def get_name(node):
 
 
 def cgen_variable(node):
+    emit_comment('cgen_variable')
     # node = parseTree.node[variable_id]
     # type_id = node.child[0]
     # ident_id = node.child[1]
@@ -131,6 +137,7 @@ def cgen_variable(node):
 
 
 def cgen_variable_decl(node):
+    emit_comment('cgen_variable_decl')
     name, type = cgen_variable(node.ref_child[0])
     ut.symbolTable.add_variable(type, name)
     if type == "double":
@@ -143,6 +150,7 @@ def cgen_variable_decl(node):
 
 
 def cgen_if(node):
+    emit_comment('cgen_if')
     length = len(node.ref_child)
     if length == 2:
         cgen_if2(node.ref_child[0], node.ref_child[1])
@@ -155,6 +163,7 @@ def cgen_if(node):
 
 
 def cgen_print_stmt(node):
+    emit_comment('cgen_print_stmt')
     top = ut.disFp
 
     for child in node.ref_child:
@@ -179,6 +188,8 @@ def cgen_print_stmt(node):
 
 
 def cgen_stmt(node):
+    emit_comment('cgen_stmt')
+
     child = node.ref_child[0]
     top = ut.disFp
 
@@ -205,6 +216,7 @@ def cgen_stmt(node):
 
 
 def cgen_stmt_block(node):
+    emit_comment('cgen_stmt_block')
     ut.symbolTable.add_scope()
     top = ut.disFp
 
@@ -220,6 +232,7 @@ def cgen_stmt_block(node):
 
 
 def cgen_break(node):
+    emit_comment('cgen_break')
     parent = node.ref_parent
     while parent is not None:
         data = parent.data
@@ -233,9 +246,8 @@ def cgen_break(node):
     emit_jump(parent.attribute[AttName.exit_label])
     return
 
+
 def cgen(parseTree):
     emit('.text')
     cgen_stmt_block(parseTree.nodes[0].ref_child[0].ref_child[0].ref_child[3])
     emit(ut.print_data_section())
-
-

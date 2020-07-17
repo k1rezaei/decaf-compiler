@@ -116,9 +116,9 @@ def get_type(node):
     # node = parseTree.nodes[type_id_direct]
     type_pri = node.ref_child[0].ref_child[0].data
     if len(node.ref_child) == 1:
-        return type_pri
+        return False, type_pri
     else:
-        return Type.array, type_pri, len(node.ref_child) - 1
+        return True, type_pri, len(node.ref_child) - 1
 
 
 def get_name(node):
@@ -142,7 +142,14 @@ def cgen_variable(node):
 def cgen_variable_decl(node):
     emit_comment('cgen_variable_decl')
     name, type = cgen_variable(node.ref_child[0])
-    ut.symbolTable.add_variable(type, name)
+
+    if type[0]:
+        type = type[1:]
+        ut.symbolTable.add_variable(type, name, True)
+    else:
+        type = type[1]
+        ut.symbolTable.add_variable(type, name)
+
     if type == "double":
         ut.disFp -= 8
         emit("addi $sp, $sp, -8")

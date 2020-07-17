@@ -83,7 +83,7 @@ def cgen_expr_assign(node):
 
     rvalue_expr_type = rvalue_expr.attribute[AttName.type]
     if lvalue.attribute[AttName.type] != rvalue_expr_type:
-        raise TypeError("in node: \n" + node.__repr__() + "\nrvalue and lvalue type must be equal.")
+        raise TypeError("in node: \n" + lvalue.__repr__() + rvalue_expr.__repr__() + "\nrvalue and lvalue type must be equal.")
 
     if rvalue_expr_type == Type.array:
         if rvalue_expr.attribute[AttName.array_member_type] != lvalue.attribute[AttName.array_member_type] or \
@@ -120,12 +120,13 @@ def cgen_lvalue(node):
     if left_child.data == 'ident':
         ident_name = expr_ident(left_child)
         variable = ut.symbolTable.get_variable_by_name(ident_name)
-        if len(variable.type) == 1:
-            node.attribute[AttName.type] = variable.type
-        else:
+        if variable.is_array:
             node.attribute[AttName.type] = Type.array
-            node.attribute[AttName.array_member_type] = variable.type[1]
-            node.attribute[AttName.array_dim] = variable.type[2]
+            node.attribute[AttName.array_member_type] = variable.type[0]
+            node.attribute[AttName.array_dim] = variable.type[1]
+        else:
+            node.attribute[AttName.type] = variable.type
+
         node.attribute[AttName.address] = variable.address
     elif right_child.data == 'ident':
         expr = cgen_expr(left_child)

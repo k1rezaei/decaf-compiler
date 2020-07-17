@@ -87,10 +87,11 @@ def emit(st):
 
 
 class Variable:
-    def __init__(self, name, type, address):
+    def __init__(self, name, type, address, is_array=False):
         self.name = name
         self.type = type
         self.address = address
+        self.is_array = is_array
 
 
 ####
@@ -203,7 +204,7 @@ class SymbolTable:
 
             # daroon cgen marboot be variable decleration in bayad seda zadeshe.
 
-    def add_variable(self, type, name):
+    def add_variable(self, type, name, is_array=False):
         if not self.check_validity_in_scope(name):
             error("variable already defined in this scope")
 
@@ -216,7 +217,7 @@ class SymbolTable:
             else:
                 addr = self.variables[-1].address.addr - 4
         address = Address(addr, 0)
-        variable = Variable(name, type, address)
+        variable = Variable(name, type, address, is_array)
         self.variables.append(variable)
 
     def finish_params(self):
@@ -228,7 +229,7 @@ class SymbolTable:
             variable.address.addr += last_addr
         return
 
-    def add_param(self, type, name):
+    def add_param(self, type, name, is_array=False):
         if not self.check_validity_in_params(name):
             error("parameter names are same")
 
@@ -241,7 +242,7 @@ class SymbolTable:
             else:
                 addr = self.params[-1].address.addr - 4
         address = Address(addr, 0)
-        variable = Variable(name, type, address)
+        variable = Variable(name, type, address, is_array)
         self.params.append(variable)
 
         ### will return an object of type Variable (Not change It!)

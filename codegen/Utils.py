@@ -178,7 +178,6 @@ class SymbolTable:
         ### agar for/while hast "loop". (due to break)
 
     ### vagarna khaali (Nadid)
-    # TODO {seyed} chera age az stack pop nakonim kharab mishe?!?!
     def add_scope(self, type=""):
         self.scopes.append((len(self.variables), type))
 

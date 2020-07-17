@@ -223,20 +223,23 @@ MULTI_LINE_COMMENT : /\/\*([^\\*]|(\*)+[^\\*\\/])*(\*)+\//
 keyWords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'null', 'this', 'extends', 'implements',
             'for', 'while', 'if', 'else', 'return', 'break', 'new', 'NewArray', 'Print', 'ReadInteger', 'ReadLine']
 
-
 parser = Lark(grammar, parser='lalr', debug=False)
 code = """
-int main(){
-    int i; 
-    i=2;
+int main() {
+    int i;
+    i=5;
+    while(i>0){
+        Print(i);
+        i=i-1; 
+    }
 }
 """
 x = parser.parse(code)
 parseTree = ParseTree(x)
-print(parseTree)
-s = 0
-for j in parseTree.nodes:
-    print(s, " ", j)
-    s += 1
+# print(parseTree)
+# s = 0
+# for j in parseTree.nodes:
+#    print(s, " ", j)
+#    s += 1
 
 cgen(parseTree)

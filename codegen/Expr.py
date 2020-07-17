@@ -1,5 +1,5 @@
 from codegen.Utils import create_label, emit_load, emit_addi, emit_data, emit_label, emit_load_double, emit_li, \
-    emit_move, emit_jump, emit_syscall, emit_comment,emit
+    emit_move, emit_jump, emit_syscall, emit_comment, emit
 import codegen.Utils as ut
 from codegen.Utils import AttName, Address, align_stack, Type, stack_handler
 from codegen.Error import TypeError
@@ -71,7 +71,7 @@ def expr_set_node_attributes(node, type):
         emit_addi('$sp', '$sp', '-4')
         ut.disFp -= 4
 
-    node.attribute[AttName.address] = Address(ut.disFp, 0)
+    node.attribute[AttName.address] = Address(ut.disFp, 0, type == Type.double)
     node.attribute[AttName.type] = type
 
 
@@ -422,13 +422,13 @@ def cgen_expr_nequal(node):
 
 def cgen_expr_grq(node):
     emit_comment('cgen_expr_grq')
-    (node.ref_child[0], node.ref_child[1]) = (node.ref_child[1], node.ref_child[0])
+    (node.ref_child[0], node.ref_child[2]) = (node.ref_child[2], node.ref_child[0])
     return cgen_expr_leq(node)
 
 
 def cgen_expr_gr(node):
     emit_comment('cgen_expr_gr')
-    (node.ref_child[0], node.ref_child[1]) = (node.ref_child[1], node.ref_child[0])
+    (node.ref_child[0], node.ref_child[2]) = (node.ref_child[2], node.ref_child[0])
     return cgen_expr_le(node)
 
 
@@ -453,7 +453,7 @@ def cgen_expr_le(node):
         left_child_address.load()
         emit_move("$s1", "$s0")
         right_child_address.load()
-        emit("slt $s0, $s0, $s1")
+        emit("slt $s0, $s1, $s0")
     else:
         raise TypeError("in node: \n" + node.__repr__() + "\nExprs' type isn't comparable.")
 
@@ -496,12 +496,12 @@ def expr_add_sub(node, operation):
         left_child_address.load()
         emit("move $s1, $s0")
         right_child_address.load()
-        emit(operation + " $s0, $s0, $s1")
+        emit(operation + " $s0, $s1, $s0")
     elif left_child_type == Type.double:
         left_child_address.load()
         emit("mov.d $f2, $f0")
         right_child_address.load()
-        emit(operation + ".d $f0, $f0, $f2")
+        emit(operation + ".d $f0, $f2, $f0")
 
     stack_handler.back_to_last_checkpoint()
     expr_set_node_attributes(node, left_child_type)
@@ -540,7 +540,7 @@ def expr_mul_mod_div(node, operation):
         if operation == 'mul':
             emit("mult $s0, $s1")
         else:
-            emit("div $s0, $s1")
+            emit("div $s1, $s0")
 
         if operation == 'mod':
             emit("mfhi $s0")
@@ -550,7 +550,7 @@ def expr_mul_mod_div(node, operation):
         left_child_address.load()
         emit("mov.d $f2, $f0")
         right_child_address.load()
-        emit(operation + ".d $f0, $f0, $f2")
+        emit(operation + ".d $f0, $f2, $f0")  # TODO ino check kon div mesle inke kollan barax bood
 
     stack_handler.back_to_last_checkpoint()
     expr_set_node_attributes(node, left_child_type)

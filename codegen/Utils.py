@@ -3,6 +3,15 @@ from codegen.Error import error
 used_labels = 1
 disFp = -4  ### always we have $sp = $fp + disFp.
 
+data_section = '''.data
+null:
+    .space 8
+
+'''
+
+def print_data_section():
+    global data_section
+    print(data_section)
 
 def create_label():
     global used_labels

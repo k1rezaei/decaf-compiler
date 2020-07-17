@@ -466,7 +466,7 @@ def expr_add_sub(node, operation):
     left_child_address = left_child.attribute[AttName.address]
     right_child_address = right_child.attribute[AttName.address]
 
-    if left_child_type != right_child.attribute[type] or left_child_type not in (Type.double, Type.int):
+    if left_child_type != right_child.attribute[AttName.type] or left_child_type not in (Type.double, Type.int):
         raise TypeError(
             "in node: \n" + node.__repr__() + "\n exprs' types are not good for " + operation + " operation.")
     elif left_child_type == Type.int:
@@ -504,7 +504,7 @@ def expr_mul_mod_div(node, operation):
     left_child_address = left_child.attribute[AttName.address]
     right_child_address = right_child.attribute[AttName.address]
 
-    if left_child_type != right_child.attribute[type] or left_child_type not in (Type.double, Type.int) or (
+    if left_child_type != right_child.attribute[AttName.type] or left_child_type not in (Type.double, Type.int) or (
             operation == 'mod' and left_child_type != Type.int):
         raise TypeError(
             "in node: \n" + node.__repr__() + "\n exprs' types are not good for " + operation + " operation.")

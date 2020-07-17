@@ -5,18 +5,6 @@ from codegen.Utils import AttName, Address, align_stack, Type
 from codegen.Error import error, TypeError
 
 
-data_section = '''.data
-null:
-    .space 8
-
-'''
-
-
-def print_data_section():
-    global data_section
-    print(data_section)
-
-
 def cgen_if1(expr, stmt1, stmt2):
     l1 = create_label()
     l2 = create_label()
@@ -246,5 +234,8 @@ def cgen_break(node):
     return
 
 def cgen(parseTree):
+    emit('.text')
     cgen_stmt_block(parseTree.nodes[0].ref_child[0].ref_child[0].ref_child[3])
+    emit(ut.print_data_section())
+
 

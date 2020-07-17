@@ -227,8 +227,8 @@ keyWords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'nu
 parser = Lark(grammar, parser='lalr', debug=False)
 code = """
 int main(){
-    int i; 
-    i=1;
+    double i; 
+    i=1.e3;
 }
 """
 x = parser.parse(code)

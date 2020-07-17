@@ -85,6 +85,12 @@ def cgen_expr_assign(node):
     if lvalue.attribute[AttName.type] != rvalue_expr_type:
         raise TypeError("in node: \n" + node.__repr__() + "\nrvalue and lvalue type must be equal.")
 
+    if rvalue_expr_type == Type.array:
+        if rvalue_expr.attribute[AttName.array_member_type] != lvalue.attribute[AttName.array_member_type] or \
+                rvalue_expr.attribute[AttName.array_dim] != lvalue.attribute[AttName.array_dim]:
+            raise TypeError(
+                "in node: \n" + lvalue.__repr__() + rvalue_expr.__repr__() + "\nrvalue and lvalue member-type and arr-dimension must be equal.")
+
     lvalue_address = lvalue.attribute[AttName.address]
     rvalue_address = rvalue_expr.attribute[AttName.address]
 
@@ -114,7 +120,12 @@ def cgen_lvalue(node):
     if left_child.data == 'ident':
         ident_name = expr_ident(left_child)
         variable = ut.symbolTable.get_variable_by_name(ident_name)
-        node.attribute[AttName.type] = variable.type
+        if len(variable.type) == 1:
+            node.attribute[AttName.type] = variable.type
+        else:
+            node.attribute[AttName.type] = Type.array
+            node.attribute[AttName.array_member_type] = variable.type[1]
+            node.attribute[AttName.array_dim] = variable.type[2]
         node.attribute[AttName.address] = variable.address
     elif right_child.data == 'ident':
         expr = cgen_expr(left_child)
@@ -284,7 +295,7 @@ def expr_type(node):
     type_pri = node.ref_child[0]
 
     if type_pri.data != 'ident':
-        return type_pri.data, len(node.ref_child) - 1
+        return type_pri.ref_child[0].data, len(node.ref_child) - 1
 
     return type_pri.ref_child[0].data, len(node.ref_child) - 1
 
@@ -320,6 +331,8 @@ def cgen_new_array(node):
     stack_handler.back_to_last_checkpoint()
     expr_set_node_attributes(node, Type.array)
     node.attribute[AttName.address].store()
+    node.attribute[AttName.array_dim] = dimension + 1
+    node.attribute[AttName.array_member_type] = member_type
     return node
 
 

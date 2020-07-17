@@ -30,7 +30,8 @@ class Node:
         self.ref_child.append(node)
 
     def __repr__(self):
-        return "[" + str(self.data) + ", " + str(self.parent) + ", " + str(self.child) + "]"
+        return "[" + str(self.data) + ", " + str(self.parent) + ", " + str(self.child) + ", " + str(
+            self.attribute) + "]"
 
 
 class ParseTree:
@@ -41,8 +42,6 @@ class ParseTree:
     def construct(self, lark_tree, index):
         if not isinstance(lark_tree, Tree):
             self.nodes.append(Node(data_transform(lark_tree), index, self.nodes[index]))
-            #TODO inja benazaram nabayad dg data_transform bezanim chon ina az noe TOKEN hastan, na?
-            #TODO va fk konam bayad lark_tree.value bezari inja bara token
             return len(self.nodes) - 1
         next_index = len(self.nodes)
         ref_par = None

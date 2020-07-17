@@ -127,7 +127,7 @@ class Address:
             emit('mult $s0, $t6')
             emit('mflo $t6')
 
-            emit("addi $s0, $t5, $t6")
+            emit("add $s0, $t5, $t6")
         return
 
     def load(self):

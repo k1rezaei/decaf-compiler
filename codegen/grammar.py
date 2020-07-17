@@ -227,10 +227,10 @@ parser = Lark(grammar, parser='lalr', debug=False)
 code = """
 int main() {
     int i;
-    i=5;
-    while(i!=0){
+    i=5; 
+    while(i>=0){
         Print(i);
-        i=i-1; 
+        i=i-1;
     }
 }
 """

@@ -466,7 +466,7 @@ def cgen_expr_le(node):
 def cgen_expr_leq(node):
     emit_comment('cgen_expr_leq')
     stack_handler.add_checkpoint()
-    node = cgen_expr_leq(node)
+    node = cgen_expr_le(node)
     node.attribute[AttName.address].load()
     emit_move("$s2", "$s0")
 

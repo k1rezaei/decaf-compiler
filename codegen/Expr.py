@@ -415,7 +415,7 @@ def cgen_expr_nequal(node):
 
     address.load()
     emit("li $t0, 1")
-    emit("sub $t0, $s0")
+    emit("sub $t0, $t0, $s0")
     address.store()
     return node
 

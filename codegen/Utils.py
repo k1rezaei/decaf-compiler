@@ -258,6 +258,7 @@ class SymbolTable:
 
 
 symbolTable = SymbolTable(False)
+symbolTable.finish_params()
 
 
 class Type:

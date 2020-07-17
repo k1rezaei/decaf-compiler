@@ -175,11 +175,11 @@ def cgen_print_stmt(node):
         address = expr.attribute[AttName.address]
         type = expr.attribute[AttName.type]
         address.load_address()
-        if type is "double":
+        if type == "double":
             emit_load_double("$f12", "$s0")
             emit_li("$v0", 3)
             emit_syscall()
-        elif type is "string":
+        elif type == "string":
             emit_load("$a0", "$s0")
             emit_li("$v0", 4)
             emit_syscall()
@@ -195,22 +195,22 @@ def cgen_stmt(node):
     child = node.ref_child[0]
     top = ut.disFp
 
-    if child.data is "stmt":
+    if child.data == "stmt":
         cgen_stmt(child)
-    elif child.data is "forstmt":
+    elif child.data == "forstmt":
         cgen_for(child)
-    elif child.data is "whilestmt":
+    elif child.data == "whilestmt":
         cgen_while(child)
-    elif child.data is "ifstmt":
+    elif child.data == "ifstmt":
         cgen_if(child)
-    elif child.data is "stmtblock":
+    elif child.data == "stmtblock":
         cgen_stmt_block(child)
-    elif child.data is "expr":
+    elif child.data == "expr":
         cgen_expr(child)
         align_stack(top)
-    elif child.data is "breakstmt":
+    elif child.data == "breakstmt":
         cgen_break(child)
-    elif child.data is "printstmt":
+    elif child.data == "printstmt":
         cgen_print_stmt(child)
 
 
@@ -219,11 +219,10 @@ def cgen_stmt(node):
 
 def cgen_stmt_block(node):
     ut.symbolTable.add_scope()
-
     top = ut.disFp
 
     for child_node in node.ref_child:
-        if child_node.data is "variabledecl":
+        if child_node.data == "variabledecl":
             cgen_variable_decl(child_node)
         else:
             cgen_stmt(child_node)

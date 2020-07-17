@@ -41,7 +41,7 @@ class ParseTree:
 
     def construct(self, lark_tree, index):
         if not isinstance(lark_tree, Tree):
-            self.nodes.append(Node(data_transform(lark_tree), index, self.nodes[index]))
+            self.nodes.append(Node(lark_tree, index, self.nodes[index]))
             return len(self.nodes) - 1
         next_index = len(self.nodes)
         ref_par = None

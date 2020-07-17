@@ -226,10 +226,8 @@ keyWords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'nu
 parser = Lark(grammar, parser='lalr', debug=False)
 code = """
 int main() {
-    int[] a;
-    a=NewArray(5,int);
-    a[2]=5; 
-    Print(a[2]);
+    int expr1;
+    int expr2;
 }
 """
 x = parser.parse(code)

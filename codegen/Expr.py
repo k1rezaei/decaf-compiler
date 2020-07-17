@@ -574,7 +574,6 @@ def cgen_expr_mod(node):
 
 
 def cgen_expr(node):
-    emit_comment('cgen_expr')
     if len(node.child) == 1:
         child = node.ref_child[0]
 

@@ -82,7 +82,7 @@ def cgen_expr_assign(node):
         raise TypeError("in node: \n" + node.__repr__() + "\nrvalue and lvalue type must be equal.")
 
     lvalue_address = lvalue.attribute[AttName.address]
-    rvalue_address = rvalue_expr.attribute[AttName]
+    rvalue_address = rvalue_expr.attribute[AttName.address]
 
     rvalue_address.load()
     emit_move('$t0', '$s0')

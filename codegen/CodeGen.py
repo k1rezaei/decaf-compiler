@@ -1,8 +1,7 @@
 from codegen.Expr import cgen_expr, expr_set_node_attributes
 from codegen.Utils import create_label, emit_load, emit_addi, emit_data, emit_label, emit_load_double, emit_li, emit_move, emit_jump, emit_syscall, emit
 import codegen.Utils as ut
-from codegen.Utils import AttName, Address, align_stack, Type 
-from codegen.grammar import parseTree
+from codegen.Utils import AttName, Address, align_stack, Type
 from codegen.Error import error, TypeError
 
 
@@ -246,5 +245,6 @@ def cgen_break(node):
     emit_jump(parent.attribute[AttName.exit_label])
     return
 
+def cgen(parseTree):
+    cgen_stmt_block(parseTree.nodes[0].ref_child[0].ref_child[0].ref_child[3])
 
-cgen_stmt_block(parseTree.nodes[0].ref_child[0].ref_child[0].ref_child[3])

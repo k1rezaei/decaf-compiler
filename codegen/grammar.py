@@ -1,4 +1,6 @@
 from lark import Lark
+
+from codegen.CodeGen import cgen
 from codegen.parsetree import ParseTree
 
 grammar = """
@@ -221,6 +223,7 @@ MULTI_LINE_COMMENT : /\/\*([^\\*]|(\*)+[^\\*\\/])*(\*)+\//
 keyWords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'null', 'this', 'extends', 'implements',
             'for', 'while', 'if', 'else', 'return', 'break', 'new', 'NewArray', 'Print', 'ReadInteger', 'ReadLine']
 
+
 parser = Lark(grammar, parser='lalr', debug=False)
 code = """
 int main(){
@@ -236,3 +239,5 @@ s = 0
 for j in parseTree.nodes:
     print(s, " ", j)
     s += 1
+
+cgen(parseTree)

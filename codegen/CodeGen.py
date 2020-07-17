@@ -250,4 +250,4 @@ def cgen_break(node):
 def cgen(parseTree):
     emit('.text')
     cgen_stmt_block(parseTree.nodes[0].ref_child[0].ref_child[0].ref_child[3])
-    emit(ut.print_data_section())
+    ut.print_data_section()

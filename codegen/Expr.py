@@ -296,9 +296,9 @@ def cgen_expr_equal(node):
         CG.emit("li $s0, 0")
     elif left_child.attribute[AttName.type] == Type.double:
         expr_float_cmp(left_child_address, right_child_address, 'eq')
-    elif left_child.attribute[AttName.type] in (Type.array, Type.string):
-        pass
-        # TODO :((
+    #elif left_child.attribute[AttName.type] in (Type.array, Type.string):
+    #    pass
+    # TODO string, array alan farz shodan ke refrence shoon check beshe
     else:
         left_child_address.load()
         CG.emit("move $s1, $s0")

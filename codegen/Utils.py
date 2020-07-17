@@ -1,5 +1,68 @@
 from codegen.Error import error
-import codegen.CodeGen as CG
+
+used_labels = 1
+disFp = -4  ### always we have $sp = $fp + disFp.
+
+
+def create_label():
+    global used_labels
+    num = used_labels
+    arr = []
+    while num != 0:
+        s = num % 27
+        num //= 27
+        arr.append(chr(s + ord('A')))
+    arr.append("_")
+    used_labels += 1
+    return "".join(arr)[::-1]
+
+
+def align_stack(top):
+    global disFp
+    if top != disFp:
+        emit("addi $sp, $sp, " + str(top - disFp))
+        disFp = top
+
+
+def emit_addi(v1, v2, v3):
+    emit("addi " + v1 + ", " + v2 + ", " + v3)
+
+
+def emit_move(dst, src):
+    emit("move " + dst + ", " + src)
+
+
+def emit_jump(label):
+    emit("j " + label)
+
+
+def emit_label(label):
+    emit(label + " :")
+
+
+def emit_load(dst, src, offset=0):
+    emit("lw " + dst + ", " + str(offset) + "(" + src + ")")
+
+
+def emit_load_double(dst, src, offset=0):
+    emit("l.d " + dst + ", " + str(offset) + "(" + src + ")")
+
+
+def emit_li(dst, val):
+    emit("li " + dst + ", " + str(val))
+
+
+def emit_syscall():
+    emit("syscall")
+
+
+def emit_data(label, input):
+    global data_section
+    data_section += '    ' + label + ':\n' + input + '\n'
+
+
+def emit(st):
+    print(st)
 
 
 class Variable:
@@ -23,26 +86,26 @@ class Address:
 
     def load_address(self):
         if self.mode == 0:
-            CG.emit("addi $s0, $fp, " + str(self.addr))
+            emit("addi $s0, $fp, " + str(self.addr))
         elif self.mode == 1:
-            CG.emit("li $s0," + str(self.addr))
+            emit("li $s0," + str(self.addr))
         elif self.mode == 2:
-            CG.emit("addi $s0, $fp, " + str(self.addr[0]))
-            CG.emit("lw $s0, 0($s0)")
-            CG.emit("addi $s0, $s0, " + str(self.addr[1]))
+            emit("addi $s0, $fp, " + str(self.addr[0]))
+            emit("lw $s0, 0($s0)")
+            emit("addi $s0, $s0, " + str(self.addr[1]))
         else:
             self.addr[0].load()
-            CG.emit_move('$t5', '$s0')
+            emit_move('$t5', '$s0')
             self.addr[1].load()
-            CG.emit_addi('$s0', '$s0', '1')
+            emit_addi('$s0', '$s0', '1')
             if self.is_double:
-                CG.emit_li('$t6', 8)
+                emit_li('$t6', 8)
             else:
-                CG.emit_li('$t6', 4)
-            CG.emit('mult $s0, $t6')
-            CG.emit('mflo $t6')
+                emit_li('$t6', 4)
+            emit('mult $s0, $t6')
+            emit('mflo $t6')
 
-            CG.emit("addi $s0, $t5, $t6")
+            emit("addi $s0, $t5, $t6")
         return
 
     def load(self):
@@ -50,25 +113,25 @@ class Address:
             self.load_double()
         else:
             self.load_address()
-            CG.emit("lw $s0, 0($s0)")
+            emit("lw $s0, 0($s0)")
 
     def load_double(self):
         self.load_address()
-        CG.emit("mtc1.d $s0, $f0")
+        emit("mtc1.d $s0, $f0")
 
     def store(self):
         if self.is_double:
             self.store_double()
         else:
-            CG.emit_move('$t7', '$s0')
+            emit_move('$t7', '$s0')
             self.load_address()
-            CG.emit("sw $t7, 0($s0)")
+            emit("sw $t7, 0($s0)")
 
     def store_double(self):
         self.load_address()
-        CG.emit_move('$t7', '$s0')
-        CG.emit("mfc1.d $s0, $f0")
-        CG.emit("sd $s0, 0($t7)")
+        emit_move('$t7', '$s0')
+        emit("mfc1.d $s0, $f0")
+        emit("sd $s0, 0($t7)")
 
     def to_str(self):
         if self.mode == 0:
@@ -194,6 +257,9 @@ class SymbolTable:
         return True
 
 
+symbolTable = SymbolTable(False)
+
+
 class Type:
     double = "double"
     int = "int"
@@ -216,12 +282,12 @@ class StackHandler:
         self.checkpoints = []
 
     def add_checkpoint(self):
-        self.checkpoints.append(CG.disFp)
+        self.checkpoints.append(disFp)
 
     def back_to_last_checkpoint(self):
         if len(self.checkpoints) == 0:
             raise RuntimeError()
-        CG.align_stack(self.checkpoints[-1])
+        align_stack(self.checkpoints[-1])
         self.checkpoints = self.checkpoints[:-1]
 
 

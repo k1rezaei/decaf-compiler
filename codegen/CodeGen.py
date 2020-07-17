@@ -1,44 +1,9 @@
-from codegen.Expr import *
-from codegen.Utils import SymbolTable, AttName, Type, Address
+from codegen.Expr import cgen_expr, expr_set_node_attributes
+from codegen.Utils import create_label, emit_load, emit_addi, emit_data, emit_label, emit_load_double, emit_li, emit_move, emit_jump, emit_syscall, emit
+import codegen.Utils as ut
+from codegen.Utils import AttName, Address, align_stack, Type 
 from codegen.grammar import parseTree
 from codegen.Error import error, TypeError
-
-used_labels = 1
-disFp = -4  ### always we have $sp = $fp + disFp.
-
-symbolTable = SymbolTable(False)
-
-
-def emit_addi(v1, v2, v3):
-    emit("addi " + v1 + ", " + v2 + ", " + v3)
-
-
-def emit_move(dst, src):
-    emit("move " + dst + ", " + src)
-
-
-def emit_jump(label):
-    emit("j " + label)
-
-
-def emit_label(label):
-    emit(label + " :")
-
-
-def emit_load(dst, src, offset=0):
-    emit("lw " + dst + ", " + str(offset) + "(" + src + ")")
-
-
-def emit_load_double(dst, src, offset=0):
-    emit("l.d " + dst + ", " + str(offset) + "(" + src + ")")
-
-
-def emit_li(dst, val):
-    emit("li " + dst + ", " + str(val))
-
-
-def emit_syscall():
-    emit("syscall")
 
 
 data_section = '''.data
@@ -48,53 +13,15 @@ null:
 '''
 
 
-def emit_data(label, input):
-    global data_section
-    data_section += '    ' + label + ':\n' + input + '\n'
-
-
 def print_data_section():
     global data_section
     print(data_section)
 
 
-def align_stack(top):
-    global disFp
-    if top != disFp:
-        emit("addi $sp, $sp, " + str(top - disFp))
-        disFp = top
-
-
-def create_label():
-    global used_labels
-    num = used_labels
-    arr = []
-    while num != 0:
-        s = num % 27
-        num //= 27
-        arr.append(chr(s + ord('A')))
-    arr.append("_")
-    used_labels += 1
-    return "".join(arr)[::-1]
-
-
-def emit(st):
-    print(st)
-
-
-def cgen_this(node):
-    pass
-
-
-def cgen_call(node):
-    pass
-
-
 def cgen_if1(expr, stmt1, stmt2):
-    global disFp
     l1 = create_label()
     l2 = create_label()
-    top = disFp
+    top = ut.disFp
     t1 = cgen_expr(expr)
     if t1.attribute[AttName.type] != Type.bool:
         raise TypeError(
@@ -115,9 +42,8 @@ def cgen_if1(expr, stmt1, stmt2):
 
 
 def cgen_if2(expr, stmt):
-    global disFp
     l1 = create_label()
-    top = disFp
+    top = ut.disFp
     t1 = cgen_expr(expr)
     if t1.attribute[AttName.type] != Type.bool:
         raise TypeError(
@@ -134,10 +60,9 @@ def cgen_if2(expr, stmt):
 
 
 def cgen_while(node):
-    global disFp
     expr = node.ref_child[0]
     stmt = node.ref_child[1]
-    top = disFp
+    top = ut.disFp
     l1 = create_label()
     l2 = create_label()
     node.attribute[AttName.exit_label] = l2
@@ -163,8 +88,7 @@ def cgen_for(node):
     expr2 = node.ref_child[1]
     expr3 = node.ref_child[2]
     stmt = node.ref_child[3]
-    global disFp
-    top = disFp
+    top = ut.disFp
     l1 = create_label()
     l2 = create_label()
     node.attribute[AttName.exit_label] = l2
@@ -220,64 +144,15 @@ def cgen_variable(node):
 
 
 def cgen_variable_decl(node):
-    global disFp, symbolTable
     name, type = cgen_variable(node.ref_child[0])
-    symbolTable.add_variable(type, name)
+    ut.symbolTable.add_variable(type, name)
     if type == "double":
-        disFp -= 8
+        ut.disFp -= 8
         emit("addi $sp, $sp, -8")
     else:
-        disFp -= 4
+        ut.disFp -= 4
         emit("addi $sp, $sp, -4")
     return
-
-
-def cgen_readline(node):  # after calling this function address of the string is in $S0
-    global disFp
-    disFp -= 4
-    node.attribute[AttName.address] = Address(disFp, 0)
-    node.attribute[AttName.type] = Type.string
-    emit_addi("$sp", "$sp", "-4")
-    emit_move("$s3", "$sp")  # $s3 saves top of stack
-    emit_li("$v0", 8)
-    emit_li("$a1", 1)  # length of read (1 byte)
-    emit_li("$s1", ord("\n"))
-    l1 = create_label()
-    l2 = create_label()
-    emit_label(l1)
-    emit("addi $sp, $sp, -1")
-    emit_move("$a0", "$sp")
-    emit_syscall()  # read one char and store in top of stack
-    emit("lbu $s0, 0($sp)")
-    emit("bneq $s0, $s1, " + l1)  # check the end of line
-    emit("sub $a0, $s3, $sp")
-    emit_addi("$a0", "$a0", "1")  # amount ot get memory
-    emit_li("$v0", 9)
-    emit_syscall()  # first of allocated memory is in $v0
-    emit_move("$v1", "$v0")  # store address of string in v1 (don't change this reg!)
-    emit_addi("$a0", "$a0", "-1")
-    emit_addi("$sp", "$s3", "-1")
-    emit_label(l2)
-    emit("lbu $s0, 0($sp)")
-    emit("sb $s0, 0($v0)")
-    emit_addi("$v0", "$v0", "1")
-    emit_addi("$sp", "$sp", "-1")
-    emit_addi("$a0", "$a0", "-1")
-    emit("bnez $a0, " + l2)  # check that all characters have benn writen
-    emit_li("$v0", 0)
-    emit("sb $s0, 0($v0)")
-    emit_move("$sp", "$s3")
-    emit("sw $v1, 0($sp)")
-    return node
-
-
-def cgen_readint(node):
-    global disFp
-    expr_set_node_attributes(node, Type.int)
-    emit("li $v0, 5")
-    emit("syscall")
-    emit("sw $v0, " + str(disFp) + "($fp)")
-    return node
 
 
 def cgen_if(node):
@@ -293,8 +168,7 @@ def cgen_if(node):
 
 
 def cgen_print_stmt(node):
-    global disFp
-    top = disFp
+    top = ut.disFp
 
     for child in node.ref_child:
         expr = cgen_expr(child)
@@ -319,8 +193,7 @@ def cgen_print_stmt(node):
 
 def cgen_stmt(node):
     child = node.ref_child[0]
-    global disFp
-    top = disFp
+    top = ut.disFp
 
     if child.data is "stmt":
         cgen_stmt(child)
@@ -345,11 +218,9 @@ def cgen_stmt(node):
 
 
 def cgen_stmt_block(node):
-    global symbolTable
-    symbolTable.add_scope()
+    ut.symbolTable.add_scope()
 
-    global disFp
-    top = disFp
+    top = ut.disFp
 
     for child_node in node.ref_child:
         if child_node.data is "variabledecl":
@@ -359,7 +230,7 @@ def cgen_stmt_block(node):
 
     align_stack(top)
 
-    symbolTable.remove_scope()
+    ut.symbolTable.remove_scope()
 
 
 def cgen_break(node):

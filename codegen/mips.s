@@ -4,6 +4,9 @@ main: addi $fp, $sp, -4
 # cgen_variable_decl
 # cgen_variable
 addi $sp, $sp, -4
+# cgen_variable_decl
+# cgen_variable
+addi $sp, $sp, -4
 # cgen_stmt
 # cgen_stmt
 # cgen_expr_assign
@@ -14,15 +17,15 @@ addi $sp, $sp, -4
 # expr_set_node_attributes
 addi $sp, $sp, -4
 lui $s0, 0
-addiu $s0, $s0, 0
+addiu $s0, $s0, 1
 # Address.store()
 move $t7, $s0
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -16
 sw $t7, 0($s0)
 # Address.load()
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -16
 lw $s0, 0($s0)
 move $t0, $s0
 # Address.store()
@@ -38,7 +41,7 @@ addi $sp, $sp, -4
 # Address.store()
 move $t7, $s0
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -16
 sw $t7, 0($s0)
 addi $sp, $sp, 4
 # cgen_stmt
@@ -53,11 +56,11 @@ _B :
 # expr_set_node_attributes
 addi $sp, $sp, -4
 lui $s0, 0
-addiu $s0, $s0, 10
+addiu $s0, $s0, 6
 # Address.store()
 move $t7, $s0
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -16
 sw $t7, 0($s0)
 # Address.load()
 # Address.load_address()
@@ -66,7 +69,7 @@ lw $s0, 0($s0)
 move $s1, $s0
 # Address.load()
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -16
 lw $s0, 0($s0)
 slt $s0, $s1, $s0
 # StackHandler.back_to_last_checkpoint
@@ -76,10 +79,10 @@ addi $sp, $sp, -4
 # Address.store()
 move $t7, $s0
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -16
 sw $t7, 0($s0)
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -16
 lw $t0, 0($s0)
 addi $sp, $sp, 4
 beqz $t0, _C
@@ -87,10 +90,143 @@ beqz $t0, _C
 # cgen_stmt_block
 # cgen_stmt
 # cgen_stmt
+# cgen_expr_assign
+# StackHandler.add_checkpoint
+# cgen_lvalue
+# cgen_constant
+# cgen_constant_int
+# expr_set_node_attributes
+addi $sp, $sp, -4
+lui $s0, 0
+addiu $s0, $s0, 1
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -16
+sw $t7, 0($s0)
+# Address.load()
+# Address.load_address()
+addi $s0, $fp, -16
+lw $s0, 0($s0)
+move $t0, $s0
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -12
+sw $t7, 0($s0)
+move $s0, $t0
+# StackHandler.back_to_last_checkpoint
+addi $sp, $sp, 4
+# expr_set_node_attributes
+addi $sp, $sp, -4
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -16
+sw $t7, 0($s0)
+addi $sp, $sp, 4
+# cgen_stmt
+# cgen_stmt
+# cgen_while
+_D :
+# cgen_expr_le
+# StackHandler.add_checkpoint
+# cgen_lvalue
+# cgen_constant
+# cgen_constant_int
+# expr_set_node_attributes
+addi $sp, $sp, -4
+lui $s0, 0
+addiu $s0, $s0, 6
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -16
+sw $t7, 0($s0)
+# Address.load()
+# Address.load_address()
+addi $s0, $fp, -12
+lw $s0, 0($s0)
+move $s1, $s0
+# Address.load()
+# Address.load_address()
+addi $s0, $fp, -16
+lw $s0, 0($s0)
+slt $s0, $s1, $s0
+# StackHandler.back_to_last_checkpoint
+addi $sp, $sp, 4
+# expr_set_node_attributes
+addi $sp, $sp, -4
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -16
+sw $t7, 0($s0)
+# Address.load_address()
+addi $s0, $fp, -16
+lw $t0, 0($s0)
+addi $sp, $sp, 4
+beqz $t0, _E
+# cgen_stmt
+# cgen_stmt_block
+# cgen_variable_decl
+# cgen_variable
+addi $sp, $sp, -4
+# cgen_stmt
+# cgen_stmt
+# cgen_expr_assign
+# StackHandler.add_checkpoint
+# cgen_lvalue
+# cgen_expr_mul
+# StackHandler.add_checkpoint
+# cgen_lvalue
+# cgen_lvalue
+# Address.load()
+# Address.load_address()
+addi $s0, $fp, -8
+lw $s0, 0($s0)
+move $s1, $s0
+# Address.load()
+# Address.load_address()
+addi $s0, $fp, -12
+lw $s0, 0($s0)
+mult $s0, $s1
+mflo $s0
+# StackHandler.back_to_last_checkpoint
+# expr_set_node_attributes
+addi $sp, $sp, -4
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -20
+sw $t7, 0($s0)
+# Address.load()
+# Address.load_address()
+addi $s0, $fp, -20
+lw $s0, 0($s0)
+move $t0, $s0
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -16
+sw $t7, 0($s0)
+move $s0, $t0
+# StackHandler.back_to_last_checkpoint
+addi $sp, $sp, 4
+# expr_set_node_attributes
+addi $sp, $sp, -4
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -20
+sw $t7, 0($s0)
+addi $sp, $sp, 4
+# cgen_stmt
+# cgen_stmt
 # cgen_print_stmt
 # cgen_lvalue
 # Address.load_address()
-addi $s0, $fp, -8
+addi $s0, $fp, -16
 lw $a0, 0($s0)
 li $v0, 1
 syscall
@@ -117,16 +253,16 @@ addiu $s0, $s0, 1
 # Address.store()
 move $t7, $s0
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -20
 sw $t7, 0($s0)
 # Address.load()
 # Address.load_address()
-addi $s0, $fp, -8
+addi $s0, $fp, -12
 lw $s0, 0($s0)
 move $s1, $s0
 # Address.load()
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -20
 lw $s0, 0($s0)
 add $s0, $s1, $s0
 # StackHandler.back_to_last_checkpoint
@@ -136,11 +272,73 @@ addi $sp, $sp, -4
 # Address.store()
 move $t7, $s0
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -20
 sw $t7, 0($s0)
 # Address.load()
 # Address.load_address()
+addi $s0, $fp, -20
+lw $s0, 0($s0)
+move $t0, $s0
+# Address.store()
+move $t7, $s0
+# Address.load_address()
 addi $s0, $fp, -12
+sw $t7, 0($s0)
+move $s0, $t0
+# StackHandler.back_to_last_checkpoint
+addi $sp, $sp, 4
+# expr_set_node_attributes
+addi $sp, $sp, -4
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -20
+sw $t7, 0($s0)
+addi $sp, $sp, 4
+addi $sp, $sp, 4
+j _D
+_E :
+# cgen_stmt
+# cgen_stmt
+# cgen_expr_assign
+# StackHandler.add_checkpoint
+# cgen_lvalue
+# cgen_expr_add
+# StackHandler.add_checkpoint
+# cgen_lvalue
+# cgen_constant
+# cgen_constant_int
+# expr_set_node_attributes
+addi $sp, $sp, -4
+lui $s0, 0
+addiu $s0, $s0, 1
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -16
+sw $t7, 0($s0)
+# Address.load()
+# Address.load_address()
+addi $s0, $fp, -8
+lw $s0, 0($s0)
+move $s1, $s0
+# Address.load()
+# Address.load_address()
+addi $s0, $fp, -16
+lw $s0, 0($s0)
+add $s0, $s1, $s0
+# StackHandler.back_to_last_checkpoint
+addi $sp, $sp, 4
+# expr_set_node_attributes
+addi $sp, $sp, -4
+# Address.store()
+move $t7, $s0
+# Address.load_address()
+addi $s0, $fp, -16
+sw $t7, 0($s0)
+# Address.load()
+# Address.load_address()
+addi $s0, $fp, -16
 lw $s0, 0($s0)
 move $t0, $s0
 # Address.store()
@@ -156,12 +354,12 @@ addi $sp, $sp, -4
 # Address.store()
 move $t7, $s0
 # Address.load_address()
-addi $s0, $fp, -12
+addi $s0, $fp, -16
 sw $t7, 0($s0)
 addi $sp, $sp, 4
 j _B
 _C :
-addi $sp, $sp, 4
+addi $sp, $sp, 8
 li $v0, 10
 syscall
 .data

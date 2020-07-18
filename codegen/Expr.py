@@ -31,7 +31,7 @@ def cgen_readline(node):  # after calling this function address of the string is
     emit_move("$a0", "$sp")
     emit_syscall()  # read one char and store in top of stack
     emit("lbu $s0, 0($sp)")
-    emit("bneq $s0, $s1, " + l1)  # check the end of line
+    emit("bne $s0, $s1, " + l1)  # check the end of line
     emit("sub $a0, $s3, $sp")
     emit_addi("$a0", "$a0", "1")  # amount ot get memory
     emit_li("$v0", 9)

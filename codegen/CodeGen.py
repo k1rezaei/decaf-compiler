@@ -57,12 +57,12 @@ def cgen_while(node):
     l1 = create_label()
     l2 = create_label()
     node.attribute[AttName.exit_label] = l2
+    emit_label(l1)
     t = cgen_expr(expr)
     if t.attribute[AttName.type] != Type.bool:
         raise TypeError(
             "error in node " + str(node) + "\n type of the decision statement must be bool!"
         )
-    emit_label(l1)
     t.attribute[AttName.address].load_address()
     emit_load("$t0", "$s0")
     align_stack(top)

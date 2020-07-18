@@ -1,5 +1,5 @@
 from lark import Lark
-
+import sys
 from codegen.CodeGen import cgen
 from codegen.parsetree import ParseTree
 
@@ -226,8 +226,9 @@ keyWords = ['void', 'int', 'double', 'bool', 'string', 'class', 'interface', 'nu
 parser = Lark(grammar, parser='lalr', debug=False)
 code = """
 int main() {
-    int expr1;
-    int expr2;
+    int a;
+    a = 2;
+    Print(a);
 }
 """
 x = parser.parse(code)
@@ -238,4 +239,6 @@ parseTree = ParseTree(x)
 #    print(s, " ", j)
 #    s += 1
 
+sys.stdout = open("mips.s", "w")
 cgen(parseTree)
+sys.stdout.close()

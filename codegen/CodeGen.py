@@ -259,5 +259,8 @@ def cgen_break(node):
 
 def cgen(parseTree):
     emit('.text')
+    emit('main: addi $fp, $sp, -4')  # TODO
     cgen_stmt_block(parseTree.nodes[0].ref_child[0].ref_child[0].ref_child[3])
+    emit('li $v0, 10')
+    emit_syscall()
     ut.print_data_section()

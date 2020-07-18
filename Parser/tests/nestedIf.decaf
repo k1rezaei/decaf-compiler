@@ -1,7 +1,0 @@
-void Resolve(int dealer) {
-    if (total == 21)
-        if (heshmant)
-            salam = 5;
-        else
-            salam = 10;
- }

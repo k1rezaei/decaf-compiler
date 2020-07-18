@@ -1,9 +1,9 @@
-from codegen.Expr import cgen_expr, expr_set_node_attributes
-from codegen.Utils import emit_comment, create_label, emit_load, emit_addi, emit_data, emit_label, emit_load_double, \
+from CodeGen.Expr import cgen_expr, expr_set_node_attributes
+from CodeGen.Utils import emit_comment, create_label, emit_load, emit_addi, emit_data, emit_label, emit_load_double, \
     emit_li, emit_move, emit_jump, emit_syscall, emit
-import codegen.Utils as ut
-from codegen.Utils import AttName, Address, align_stack, Type
-from codegen.Error import error, TypeError
+import CodeGen.Utils as ut
+from CodeGen.Utils import AttName, Address, align_stack, Type
+from CodeGen.Error import error, TypeError
 
 
 def cgen_if1(expr, stmt1, stmt2):

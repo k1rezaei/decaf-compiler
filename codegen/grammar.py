@@ -227,8 +227,14 @@ parser = Lark(grammar, parser='lalr', debug=False)
 code = """
 int main() {
     int a;
+    int b;
     a = 2;
-    Print(a);
+    b = 3;
+    if(a > b) {
+        Print("Good");
+    }else {
+        Print("Bad");
+    }
 }
 """
 x = parser.parse(code)

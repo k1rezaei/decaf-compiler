@@ -57,6 +57,10 @@ def emit_syscall():
 
 
 data_section = '''.data
+newLine:
+    .asciiz "\\n"
+space:
+    .asciiz " "
 null:
     .space 8
 

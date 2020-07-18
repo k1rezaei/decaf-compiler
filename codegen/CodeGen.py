@@ -195,6 +195,13 @@ def cgen_print_stmt(node):
             emit_syscall()
 
         align_stack(top)
+        emit('la $a0, space')
+        emit_li('$v0', 4)
+        emit_syscall()
+
+    emit('la $a0, newLine')
+    emit_li("$v0", 4)
+    emit_syscall()
 
 
 def cgen_stmt(node):

@@ -11,6 +11,13 @@ __pycache__/
 # C extensions
 *.so
 
+# Seyed ezafe karde
+*.xml
+*.iml
+CodeGenerator/*.s
+CodeGenerator/input.d
+
+
 # Distribution / packaging
 .Python
 build/

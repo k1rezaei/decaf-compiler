@@ -1,0 +1,4 @@
+difference in line #9: file: out/print_for_double.out -----> content: 8 <> file: tests/print_for_double.out -----> content: 9 
+difference in line #11: file: out/print_for_double.out -----> content: 0 <> file: tests/print_for_double.out -----> content: 1 
+difference in line #12: file: out/print_for_double.out -----> content: 6 <> file: tests/print_for_double.out -----> content: 2 
+difference in line #14: file: out/print_for_double.out -----> content: 0 <> file: tests/print_for_double.out -----> content: 5 

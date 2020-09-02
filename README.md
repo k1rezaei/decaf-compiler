@@ -1,7 +1,9 @@
 # Compiler
-DECAF compiler project fall 98
+DECAF compiler project spring 99
 
 Keivan Rezaei
-Mohammad Seyed Javadi
+
+SeyedMohammad SeyedJavadi
+
 Mohammad Amin Sharifi
 
